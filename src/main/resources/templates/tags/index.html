@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org/">
+<head th:replace="fragments :: head"></head>
+<body class="container">
+
+<div th:replace="fragments :: header"></div>
+
+<div th:replace="fragments :: messages"></div>
+
+<div class="row">
+    <div class="col">
+        <a th:href="@{/tags/create}" class="btn btn-success mb-3">Create new field</a>
+    </div>
+</div>
+
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>Investment field</th>
+        <th>Description</th>
+        <th>Edition</th>
+    </tr>
+    </thead>
+    <tr th:each="tag, iStat : ${tagPage.content}">
+        <td>
+            <a th:text="'#'+${tag.name}"
+               th:href="'/tags?tagId='+${tag.id}"></a>
+        </td>
+        <td>
+            <!-- th:href="@{/events/(categoryId=${category.id})}" -->
+            <a th:text="${tag.description}">
+            </a>
+        </td>
+        <td>
+            <a th:text="'Edit #'+${tag.name}"
+               th:alt-title="'Edit #' + ${tag.name}"
+               th:href="@{/tags/edit/}+${tag.id}"></a>
+        </td>
+    </tr>
+</table>
+<div th:if="${tagPage.totalPages > 1}" id="pagination">
+    <ul>
+        <li th:each="pageNumber : ${pageNumbers}">
+            <a th:href="@{/tags(size=${tagPage.size}, page=${pageNumber})}"
+       th:text="${pageNumber}" th:alt-title="'Page ' + ${pageNumber}"
+       th:class="${pageNumber==tagPage.number + 1} ? active"></a>
+        </li>
+    </ul>
+</div>
+
+<div th:insert="fragments :: footer"></div>
+</body>
+</html>

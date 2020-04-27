@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org/">
+<head th:replace="fragments :: head"></head>
+<body class="container">
+
+<div th:replace="fragments :: header"></div>
+
+<div th:replace="fragments :: messages"></div>
+
+<!-- main class="container-fluid" -->
+
+    <h2 th:unless="${stockPage} and ${stockPage.content.size()}">No stocks were found!</h2>
+
+    <div class="row">
+        <div class="col">
+            <table class="table table-borderless table-striped table-dark">
+                <thead class="thead-dark">
+                <th:block th:replace="fragments :: headerStocksRow"></th:block>
+                <!-- tr>
+                    <th>Ticker</th>
+                    <th>Last Price</th>
+                    <th>Patents Portfolio</th>
+                    <th>Track stock</th>
+                </tr -->
+                </thead>
+                <tbody>
+                <tr>
+                    <td>IP30<br/><span>30 most patented companies</span></td>
+                    <td>xxx.xx<br/><span>hour</span></td>
+                    <td>xxx.xx<br/><span>hour</span></td>
+                    <td></td>
+                </tr>
+                <th:block th:replace="fragments :: listingResults"></th:block>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <th:block th:replace="fragments :: listingResultsPagination"></th:block>
+
+<!--/main -->
+
+<div th:insert="fragments :: footer"></div>
+
+</body>
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org/" xmlns:sec="http://www.w3.org/1999/xhtml">
+
+<head th:fragment="head">
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+
+    <title th:text="${title} +' | Patent Investor'"></title>
+
+    <!-- link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" -->
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/4.4.1-1/css/bootstrap.min.css}"/>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" th:href="@{/styles.css}"/>
+
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script type="text/javascript" th:src="@{/pagination.js}"></script>
+    <link rel="stylesheet" th:href="@{/pagination.css}"/>
+</head>
+
+<body>
+
+<header th:fragment="header">
+
+    <!-- nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary" id="showcase" -->
+    <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary" id="showcase">
+        <a class="navbar-brand" th:href="@{/}"><img th:src="@{/img/stock_market_icon_96x96px.png}" alt="Patent Investor"
+                                                    width="100" height="110">
+            <h2 style="display: inline;">Patent Investor</h2></a>
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto" sec:authorize="isAuthenticated()">
+                <!--ul class="navbar-nav mr-auto" th:if="${#authorization.expression('isAuthenticated()')}"-->
+                <!--This content is only shown to authenticated users-->
+                <li class="nav-item"><a class="nav-link" th:href="@{/stocks/search}">Search stock</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/stocks}">All Stocks</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/tags}">All investment fields</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/tags/delete}">Delete investment field</a></li>
+            </ul>
+            <ul class="navbar-nav ml-auto">
+                <!--li class="nav-item" th:if="${#authorization.expression('isAuthenticated()')}"-->
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}" method="post" name="logoutForm"></form>
+                    <a class="nav-link" href="#" onclick="document.logoutForm.submit()"><i
+                            class="fas fa-sign-out-alt"></i>Log Out</a>
+                </li>
+                <!--li class="nav-item" th:if="${#authorization.expression('!isAuthenticated()')}"-->
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <a class="nav-link" th:href="@{/register}"><i class="fas fa-user"></i> Register</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div style="height:150px"></div>
+
+    <h1 th:unless="${title} == 'Search stock' or ${title} == 'Found stock(s)'" th:text="${title}">Patent Investor</h1>
+
+    <!-- ul class="nav">
+        <li class="nav-item"><a class="nav-link" href="/stocks">All Stocks</a></li>
+        <li class="nav-item"><a class="nav-link" href="/tags">All investment fields</a></li>
+        <li class="nav-item"><a class="nav-link" href="/tags/create">Create investment field</a></li>
+        <li class="nav-item"><a class="nav-link" href="/tags/delete">Delete investment field</a></li>
+    </ul -->
+</header>
+
+<div th:fragment="messages" class="container">
+    <div th:if="${message != null}"
+         th:with="parts=${#strings.arraySplit(message, '|')}"
+         th:attr="class=${'alert alert-dismissible alert-' + parts[0]}"
+         role="alert">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <div th:text="${parts[1]}"></div>
+    </div>
+</div>
+
+<!--String iconsDestinationUrl = "/stocks/results/?sortIcon=";
+th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
+
+<th:block th:fragment="headerStocksRow">
+    <tr>
+        <th>
+            <span th:style="'color:' + @{(${sortIcon} and (${sortIcon} == 'tickerUp' or ${sortIcon} == 'tickerDown')? ${selectedColor} : ${baseColor})}">
+                Ticker
+            </span>
+            <a alt="up" title="sort ascending"
+               th:href="@{${iconsDestinationUrl} + 'tickerUp'}"
+               th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'tickerUp' ? ${selectedColor} : ${baseColor})}"
+            >
+                <i data-feather="arrow-up"></i>
+            </a>
+            <a alt="down" title="sort descending"
+               th:href="@{${iconsDestinationUrl} + 'tickerDown'}"
+               th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'tickerDown' ? ${selectedColor} : ${baseColor})}"
+            >
+                <i data-feather="arrow-down"></i>
+            </a>
+            (
+            <span th:style="'color:' + @{(${sortIcon} and (${sortIcon} == 'corpUp' or ${sortIcon} == 'corpDown')? ${selectedColor} : ${baseColor})}">
+                Corporation name
+            </span>
+            <a alt="up" title="sort ascending"
+               th:href="@{${iconsDestinationUrl} + 'corpUp'}"
+               th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'corpUp' ? ${selectedColor} : ${baseColor})}"
+            >
+                <i data-feather="arrow-up"></i>
+            </a>
+            <a alt="down" title="sort descending"
+               th:href="@{${iconsDestinationUrl} + 'corpDown'}"
+               th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'corpDown' ? ${selectedColor} : ${baseColor})}"
+            >
+                <i data-feather="arrow-down"></i>
+            </a>
+            )
+        </th>
+        <th>
+            <span th:style="'color:' + @{(${sortIcon} and (${sortIcon} == 'priceUp' or ${sortIcon} == 'priceDown')? ${selectedColor} : ${baseColor})}">
+                Last Price
+            </span>
+            <a alt="up" title="sort ascending"
+               th:href="@{${iconsDestinationUrl} + 'priceUp'}"
+               th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'priceUp' ? ${selectedColor} : ${baseColor})}"
+            >
+                <i data-feather="arrow-up"></i>
+            </a>
+            <a alt="down" title="sort descending"
+               th:href="@{${iconsDestinationUrl} + 'priceDown'}"
+               th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'priceDown' ? ${selectedColor} : ${baseColor})}"
+            >
+                <i data-feather="arrow-down"></i>
+            </a>
+        </th>
+        <th>
+            <span th:style="'color:' + @{(${sortIcon} and (${sortIcon} == 'patentsUp' or ${sortIcon} == 'patentsDown')? ${selectedColor} : ${baseColor})}">
+                Patents Portfolio
+            </span>
+            <a alt="up" title="sort ascending"
+               th:href="@{${iconsDestinationUrl} + 'patentsUp'}"
+               th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'patentsUp' ? ${selectedColor} : ${baseColor})}"
+            >
+                <i data-feather="arrow-up"></i>
+            </a>
+            <a alt="down" title="sort descending"
+               th:href="@{${iconsDestinationUrl} + 'patentsDown'}"
+               th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'patentsDown' ? ${selectedColor} : ${baseColor})}"
+            >
+                <i data-feather="arrow-down"></i>
+            </a>
+        </th>
+        <th>
+            Track stock
+        </th>
+    </tr>
+    <script>
+        feather.replace({height: '20', width: '15', class: 'foo bar', 'stroke-width': 4 })
+    </script>
+</th:block>
+<!--th:href="@{${paginationDestinationUrl}+${stockPage.size}+'&page='+${pageNumber}}"-->
+<th:block th:fragment="listingResults">
+    <tr th:each="stock, iStat : ${stockPage.content}">
+        <td><a th:alt-title="'View details of ' + ${{stock.ticker}}"
+               th:href="@{${'/stocks/detail/'+stock.id}}"
+
+        >
+            <span th:text="${{stock.ticker}}"></span></a>
+            <br/><span th:text="${stock.stockDetails.companyName}"></span>
+        </td>
+        <td><span th:text="${stock.stockDetails.latestPrice}"></span><br/>
+            <span th:text="${stock.stockDetails.lastTradeTime}"></span><br/>
+            <span th:text="${stock.stockDetails.exchange}"></span>
+        </td>
+
+        <td><span th:text="${stock.stockDetails.totalNumberOfPatents}"></span><br/>
+            <span th:text="${stock.stockDetails.lastUsptoApiUpdate}"></span>
+        </td>
+
+        <td>
+            <a th:href="@{${'/stock/portfolio/'+stock.id}}"
+               th:alt-title="'Add ' + ${stock.ticker} + ' to portfolio'"
+               class="btn btn-success mb-3">Add to portfolio</a>
+        </td>
+        <!-- td><a th:href="@{${'/events/detail/'+event.uid}}" th:text="${event.title}"></a></td -->
+        <!-- tr th:each="tag, iStat : ${tagPage.content}">
+            <td>
+                <a th:text="'#'+${tag.name}"
+                   th:href="'/tags?tagId='+${tag.id}"></a>
+            </td>
+            <td>
+                <a th:text="${tag.description}">
+                </a>
+            </td>
+            <td>
+                <a th:text="'Edit #'+${tag.name}"
+                   th:alt-title="'Edit #' + ${tag.name}"
+                   th:href="@{/tags/edit/}+${tag.id}"></a>
+            </td>
+        </tr -->
+        <!--
+                <span th:text="${stock.stockDetails.foreignCode}"></span>
+                <span th:text="${stock.stockDetails.inPortfolio}"></span>
+                <span th:text="${stock.stockDetails.numberOfShares}"></span>
+        -->
+    </tr>
+</th:block>
+
+<div th:fragment="listingResultsPagination" th:if="${stockPage.totalPages >= 1}" id="paginationDiv">
+    <ul>
+        <li th:each="pageNumber : ${pageNumbers}"
+            th:class="${pageNumber} == ${currentPage} ? active">
+            <th:block th:unless="${pageNumber} == '...'">
+                <a th:text="${pageNumber}"
+                   th:href="@{${paginationDestinationUrl}+${stockPage.size}+'&page='+${pageNumber}}"
+                th:alt-title="'page ' + ${pageNumber}">
+                    <!-- th:href="@{/stocks(size=${stockPage.size}, page=${pageNumber})}" -->
+                </a>
+            </th:block>
+            <th:block th:if="${pageNumber} == '...'">
+                <a th:text="${pageNumber}"></a>
+            </th:block>
+        </li>
+    </ul>
+</div>
+
+<footer th:fragment="footer" class="navbar fixed-bottom navbar-expand-lg navbar-dark bg-primary" id="footer-showcase">
+    <div>
+        Copyright &copy; &#8559;&#8559;&#8553;&#8553; Patent Investor - “Investing for everyone, from the Cash-strapped
+        to the deep-pocketed”
+    </div>
+</footer>
+</body>
+</html>

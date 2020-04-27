@@ -1,0 +1,63 @@
+/*$border-color: #3D315B;
+$background-color: #266DD3;
+$list-background-color: #444B6E;
+$active-list-background-color: #9AB87A;
+$border-radius: 5px;*/
+/*
+* {
+  font-family: 'Poppins';
+}
+body {
+  background-color: $background-color;
+  margin: 0;
+}*/
+#paginationDiv a:hover {
+  cursor: pointer;
+}
+#paginationDiv {
+  display: flex;
+  /*height: 100vh;*/
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+#paginationDiv ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  /*// li.previous,
+  // li.next {
+  //   animation: fadein .5s;
+  // }*/
+}
+
+#paginationDiv ul li {
+    color:white;
+    font-weight:bold;
+    display: flex;
+}
+#paginationDiv ul  a {
+  background-color: cyan;/*#444B6E;*/
+  padding: 5px 10px;
+  border: 2px solid #3D315B;
+  border-right: 0;
+  text-decoration: none;
+}
+#paginationDiv ul  li.active a {
+    background-color: orange;
+}
+#paginationDiv ul li:first-child a {
+    border-radius: 5px 0 0 5px;
+}
+#paginationDiv ul li:last-child a {
+    border-radius: 0 5px 5px 0;
+    border-right: 2px solid #3D315B;
+}
+/*
+// When I feel motivated to get this working
+// @keyframes fadein {
+//   from {opacity: 0;}
+//   to {opacity: 1;}
+// }
+*/

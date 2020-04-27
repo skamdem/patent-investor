@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org/">
+<head th:replace="fragments :: head"></head>
+<body class="container">
+<div th:replace="fragments :: header"></div>
+<div th:replace="fragments :: messages"></div>
+
+<div class="row">
+    <div class="col-sm-12 col-md-4 merge-with-background">
+        <div class="card mb-4 merge-with-background">
+            <div class="card-body text-left merge-with-background">
+                <h4 class="card-text">
+                    $ <span th:text="${stock.stockDetails.latestPrice}">0</span>
+                </h4>
+                <p class="card-text">
+                    Last Trade : <span th:text="${stock.stockDetails.getLastTradeTime()}">0</span>
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col merge-with-background">
+        <div class="card merge-with-background">
+            <div class="card-body text-right merge-with-background">
+                <h4 class="card-text">
+                    <span th:text="${stock.stockDetails.getTotalNumberOfPatents()}">0</span> patents registered
+                </h4>
+                <p class="card-text">
+                    Last update : <span th:text="${stock.stockDetails.getLastUsptoApiUpdate()}"></span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<table class="table table-striped">
+    <tr>
+        <th>Primary listing exchange : </th>
+    <!--    -->
+        <td th:with="key=${stock.stockDetails.getExchange()}"
+            th:text="${exchangePlatforms.get(key)}"></td>
+        <!--td th:each="key : ${exchangePlatforms.keySet()}"
+            th:if ="key == ${stock.stockDetails.getExchange()}"
+            th:text="${exchangePlatforms.get(key)}"></td-->
+
+    </tr>
+    <tr>
+        <th>Name of company :</th>
+        <td th:text="${stock.getStockDetails().getCompanyName()}"></td>
+    </tr>
+    <tr>
+        <th>Location :</th>
+        <td th:text="${stock.getStockDetails().getForeignCode().getDisplayName()}"></td>
+    </tr>
+    <tr>
+        <th>List of tags :</th>
+        <td>
+            <span th:unless="${stock.tags.size()} > 0" th:text="'No tag set for this stock'"></span>
+            <span th:each="tag : ${stock.tags}" th:text="${tag.getDisplayName()}+' '"></span>
+        </td>
+    </tr>
+    <tr th:if="${stock.getStockDetails().isInPortfolio()}">
+        <th>Number of Shares bought :</th>
+        <td th:text="${stock.getStockDetails().getNumberOfShares()}"></td>
+    </tr>
+</table>
+
+<a th:unless="${stock.getStockDetails().isInPortfolio()}"
+   th:href="@{${'/stock/portfolio/'+stock.id}}"
+   th:alt-title="'Add ' + ${stock.ticker} + ' to portfolio'"
+   class="btn btn-success mb-3">Add to portfolio</a>
+
+<div th:insert="fragments :: footer"></div>
+</body>
+</html>

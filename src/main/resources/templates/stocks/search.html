@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org/">
+<head th:replace="fragments :: head"></head>
+<body class="container">
+<div th:replace="fragments :: header"></div>
+<div th:replace="fragments :: messages"></div>
+
+<div class="container body-content">
+    <!-- h1 th:text="${#strings.capitalizeWords(title)}"></h1 -->
+
+    <form th:action="@{${searchDestinationUrl}}" method="post" class="search">
+        <h2>Search stock by:</h2>
+        <p>
+            <span th:each="column : ${columns}">
+                <th:block th:unless="${searchType}">
+                <input
+                        type="radio"
+                        name="searchType"
+                        th:id="${column.key}"
+                        th:value="${column.key}"
+                        th:checked="${column.key == 'all'}"/>
+                </th:block>
+                <th:block th:if="${searchType}">
+                <input
+                        type="radio"
+                        name="searchType"
+                        th:id="${column.key}"
+                        th:value="${column.key}"
+                        th:checked="${column.key == searchType}"/>
+                </th:block>
+                <label th:for="${column.key}" th:text="${column.value}"></label>
+            </span>
+        </p>
+
+        <p>
+            <label for="searchTerm">Keyword:</label>
+            <input type="text" name="searchTerm" id="searchTerm"/>
+        </p>
+        <input type="submit" value="Search"/>
+    </form>
+
+    <hr/>
+
+    <th:block th:if="${stockPage}">
+        <h2 th:unless="${stockPage} and ${stockPage.content.size()}">No stocks were found!</h2>
+        <th:block th:if="${stockPage.content.size()}">
+            <h3 th:text="${listOfStocksFound.size()} + ' stocks found'"></h3>
+            <div class="row">
+                <div class="col">
+                    <table class="table table-borderless table-striped table-dark">
+                        <thead class="thead-dark">
+                        <th:block th:replace="fragments :: headerStocksRow"></th:block>
+                        </thead>
+                        <tbody>
+                        <th:block th:replace="fragments :: listingResults"></th:block>
+                        </tbody>
+                    </table>
+                    <th:block th:replace="fragments :: listingResultsPagination"></th:block>
+                </div>
+            </div>
+        </th:block>
+    </th:block>
+    <!--
+    tickerUp    tickerDown
+    corpUp    corpDown
+    priceUp    priceDown
+    patentsUp    patentsDown
+    -->
+</div>
+
+<div th:insert="fragments :: footer"></div>
+</body>
+</html>
