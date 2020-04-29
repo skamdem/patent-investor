@@ -2,14 +2,20 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org/">
 <head th:replace="fragments :: head"></head>
 <body class="container">
-
 <div th:replace="fragments :: header"></div>
-
 <div th:replace="fragments :: messages"></div>
 
 <div class="row">
     <div class="col">
-        <a th:href="@{/tags/create}" class="btn btn-success mb-3">Create new field</a>
+        <a th:href="@{/tags/create}" class="btn btn-success mb-3">
+            Create new field
+        </a>
+    </div>
+
+    <div class="col">
+        <a th:href="@{/tags/delete}" class="btn btn-danger mb-3">
+            Delete existing field
+        </a>
     </div>
 </div>
 
@@ -24,7 +30,8 @@
     <tr th:each="tag, iStat : ${tagPage.content}">
         <td>
             <a th:text="'#'+${tag.name}"
-               th:href="'/tags?tagId='+${tag.id}"></a>
+               th:href="'/tags?tagId='+${tag.id}">
+            </a>
         </td>
         <td>
             <!-- th:href="@{/events/(categoryId=${category.id})}" -->
@@ -34,20 +41,27 @@
         <td>
             <a th:text="'Edit #'+${tag.name}"
                th:alt-title="'Edit #' + ${tag.name}"
-               th:href="@{/tags/edit/}+${tag.id}"></a>
+               th:href="@{/tags/edit/}+${tag.id}">
+            </a>
         </td>
     </tr>
 </table>
-<div th:if="${tagPage.totalPages > 1}" id="pagination">
+<div th:if="${tagPage.totalPages >= 1}" id="paginationDiv">
     <ul>
-        <li th:each="pageNumber : ${pageNumbers}">
-            <a th:href="@{/tags(size=${tagPage.size}, page=${pageNumber})}"
-       th:text="${pageNumber}" th:alt-title="'Page ' + ${pageNumber}"
-       th:class="${pageNumber==tagPage.number + 1} ? active"></a>
+        <li th:each="pageNumber : ${pageNumbers}"
+            th:class="${pageNumber} == ${tagPage.number + 1} ? active">
+            <th:block th:unless="${pageNumber} == '...'">
+                <a th:href="@{/tags(size=${tagPage.size}, page=${pageNumber})}"
+               th:text="${pageNumber}"
+               th:alt-title="'Page ' + ${pageNumber}">
+            </a>
+            </th:block>
+            <th:block th:if="${pageNumber} == '...'">
+                <a th:text="${pageNumber}"></a>
+            </th:block>
         </li>
     </ul>
 </div>
-
 <div th:insert="fragments :: footer"></div>
 </body>
 </html>

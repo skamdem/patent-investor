@@ -21,15 +21,23 @@
 <body>
 
 <header th:fragment="header">
-
     <!-- nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary" id="showcase" -->
-    <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary" id="showcase">
-        <a class="navbar-brand" th:href="@{/}"><img th:src="@{/img/stock_market_icon_96x96px.png}" alt="Patent Investor"
-                                                    width="100" height="110">
-            <h2 style="display: inline;">Patent Investor</h2></a>
-
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary"
+         id="showcase">
+        <a class="navbar-brand" th:href="@{/}">
+            <img th:src="@{/img/stock_market_icon_96x96px.png}"
+                 alt="Patent Investor"
+                 width="100"
+                 height="110">
+            <h2 style="display: inline;">Patent Investor</h2>
+        </a>
+        <button class="navbar-toggler"
+                type="button"
+                data-toggle="collapse"
+                data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -40,7 +48,7 @@
                 <li class="nav-item"><a class="nav-link" th:href="@{/stocks/search}">Search stock</a></li>
                 <li class="nav-item"><a class="nav-link" th:href="@{/stocks}">All Stocks</a></li>
                 <li class="nav-item"><a class="nav-link" th:href="@{/tags}">All investment fields</a></li>
-                <li class="nav-item"><a class="nav-link" th:href="@{/tags/delete}">Delete investment field</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/stocks/portfolio}">Portfolio</a></li>
             </ul>
             <ul class="navbar-nav ml-auto">
                 <!--li class="nav-item" th:if="${#authorization.expression('isAuthenticated()')}"-->
@@ -59,8 +67,10 @@
 
     <div style="height:150px"></div>
 
-    <h1 th:unless="${title} == 'Search stock' or ${title} == 'Found stock(s)'" th:text="${title}">Patent Investor</h1>
-
+    <h1 th:unless="${title} == 'Search stock' or ${title} == 'Found stock(s)'"
+        th:text="${title}">
+        Patent Investor
+    </h1>
     <!-- ul class="nav">
         <li class="nav-item"><a class="nav-link" href="/stocks">All Stocks</a></li>
         <li class="nav-item"><a class="nav-link" href="/tags">All investment fields</a></li>
@@ -118,6 +128,46 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
             </a>
             )
         </th>
+
+        <!-- Begin optional section for portfolio page-->
+        <th:block th:if="${netWorth != null}">
+            <th>
+            <span th:style="'color:' + @{(${sortIcon} and (${sortIcon} == 'sharesUp' or ${sortIcon} == 'sharesDown')? ${selectedColor} : ${baseColor})}">
+                # of shares
+            </span>
+                <a alt="up" title="sort ascending"
+                   th:href="@{${iconsDestinationUrl} + 'sharesUp'}"
+                   th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'sharesUp' ? ${selectedColor} : ${baseColor})}"
+                >
+                    <i data-feather="arrow-up"></i>
+                </a>
+                <a alt="down" title="sort descending"
+                   th:href="@{${iconsDestinationUrl} + 'sharesDown'}"
+                   th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'sharesDown' ? ${selectedColor} : ${baseColor})}"
+                >
+                    <i data-feather="arrow-down"></i>
+                </a>
+            </th>
+            <th>
+                <span th:style="'color:' + @{(${sortIcon} and (${sortIcon} == 'percentInPortfolioUp' or ${sortIcon} == 'percentInPortfolioDown')? ${selectedColor} : ${baseColor})}">
+                    % in portfolio
+                </span>
+                <a alt="up" title="sort ascending"
+                   th:href="@{${iconsDestinationUrl} + 'percentInPortfolioUp'}"
+                   th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'percentInPortfolioUp' ? ${selectedColor} : ${baseColor})}"
+                >
+                    <i data-feather="arrow-up"></i>
+                </a>
+                <a alt="down" title="sort descending"
+                   th:href="@{${iconsDestinationUrl} + 'percentInPortfolioDown'}"
+                   th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'percentInPortfolioDown' ? ${selectedColor} : ${baseColor})}"
+                >
+                    <i data-feather="arrow-down"></i>
+                </a>
+            </th>
+        </th:block>
+        <!-- End optional section for portfolio page-->
+
         <th>
             <span th:style="'color:' + @{(${sortIcon} and (${sortIcon} == 'priceUp' or ${sortIcon} == 'priceDown')? ${selectedColor} : ${baseColor})}">
                 Last Price
@@ -137,7 +187,7 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
         </th>
         <th>
             <span th:style="'color:' + @{(${sortIcon} and (${sortIcon} == 'patentsUp' or ${sortIcon} == 'patentsDown')? ${selectedColor} : ${baseColor})}">
-                Patents Portfolio
+                Patents Footprint
             </span>
             <a alt="up" title="sort ascending"
                th:href="@{${iconsDestinationUrl} + 'patentsUp'}"
@@ -152,38 +202,92 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
                 <i data-feather="arrow-down"></i>
             </a>
         </th>
+        <!-- Begin optional section for portfolio page-->
+        <th:block th:if="${netWorth != null}">
+            <th>
+                <span>List of tags</span>
+            </th>
+        </th:block>
+        <!-- End optional section for portfolio page-->
         <th>
-            Track stock
+            <span th:unless="${netWorth != null}">Track</span>
+            <span th:if="${netWorth != null}">Divest</span> stock
         </th>
+
     </tr>
     <script>
         feather.replace({height: '20', width: '15', class: 'foo bar', 'stroke-width': 4 })
     </script>
 </th:block>
+
 <!--th:href="@{${paginationDestinationUrl}+${stockPage.size}+'&page='+${pageNumber}}"-->
 <th:block th:fragment="listingResults">
     <tr th:each="stock, iStat : ${stockPage.content}">
-        <td><a th:alt-title="'View details of ' + ${{stock.ticker}}"
-               th:href="@{${'/stocks/detail/'+stock.id}}"
-
-        >
-            <span th:text="${{stock.ticker}}"></span></a>
-            <br/><span th:text="${stock.stockDetails.companyName}"></span>
+        <td>
+            <a th:alt-title="'View details of ' + ${{stock.ticker}}"
+               th:href="@{${'/stocks/detail/'+stock.id}}">
+                <span th:text="${{stock.ticker}}"></span>
+            </a>
+            <br/>
+            <span th:text="${stock.stockDetails.companyName}"></span>
         </td>
-        <td><span th:text="${stock.stockDetails.latestPrice}"></span><br/>
+        <!-- Begin optional section for portfolio page-->
+        <th:block th:if="${netWorth != null}">
+            <td>
+                <span th:text="${stock.stockDetails.getNumberOfShares()}"></span>
+            </td>
+            <td>
+                <span th:if="${netWorth != 0.0}"
+                      th:text="${(stock.stockDetails.getNumberOfShares()*stock.stockDetails.latestPrice) / netWorth} + '%'"></span>
+                <span th:if="${netWorth == 0.0}"
+                      th:alt-title="'Nothing bought in your portfolio'">n\a</span>
+            </td>
+        </th:block>
+        <!-- End optional section for portfolio page-->
+        <td>
+            <span th:text="${stock.stockDetails.latestPrice}"></span><br/>
             <span th:text="${stock.stockDetails.lastTradeTime}"></span><br/>
             <span th:text="${stock.stockDetails.exchange}"></span>
         </td>
-
-        <td><span th:text="${stock.stockDetails.totalNumberOfPatents}"></span><br/>
+        <td>
+            <span th:text="${stock.stockDetails.totalNumberOfPatents}"></span><br/>
             <span th:text="${stock.stockDetails.lastUsptoApiUpdate}"></span>
         </td>
-
-        <td>
-            <a th:href="@{${'/stock/portfolio/'+stock.id}}"
-               th:alt-title="'Add ' + ${stock.ticker} + ' to portfolio'"
-               class="btn btn-success mb-3">Add to portfolio</a>
+        <!-- Begin optional section for portfolio page-->
+        <td th:if="${netWorth != null}">
+            <span th:each="tag : ${stock.getTags()}" th:text="${tag.getDisplayName()} + ' '"></span>
         </td>
+        <!-- End optional section for portfolio page-->
+        <td>
+            <!-- Display this if OUTSIDE portfolio page -->
+            <th:block th:if="${netWorth == null}">
+                <a th:if="${stock.getStockDetails().isInPortfolio()}"
+                   href="#"
+                   th:alt-title="${stock.ticker} + ' is already in your portfolio'"
+                   class="btn btn-info mb-3 disabled"
+                   role="button"
+                   aria-disabled="true">
+                    Already in portfolio
+                </a>
+                <a th:unless="${stock.getStockDetails().isInPortfolio()}"
+                   th:href="@{${'/stocks/add-to-portfolio/'+stock.id}}"
+                   th:alt-title="'Add ' + ${stock.ticker} + ' to portfolio'"
+                   class="btn btn-success mb-3">
+                    Add to portfolio
+                </a>
+            </th:block>
+
+            <!-- Display this if inside portfolio page -->
+            <th:block th:if="${netWorth != null}">
+                <a th:if="${stock.getStockDetails().isInPortfolio()}"
+                   th:href="@{${'/stocks/add-to-portfolio/'+stock.id}}"
+                   th:alt-title="'Remove ' + ${stock.ticker} + ' from portfolio'"
+                   class="btn btn-warning btn-sm">
+                    remove from portfolio
+                </a>
+            </th:block>
+        </td>
+
         <!-- td><a th:href="@{${'/events/detail/'+event.uid}}" th:text="${event.title}"></a></td -->
         <!-- tr th:each="tag, iStat : ${tagPage.content}">
             <td>
@@ -208,14 +312,16 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
     </tr>
 </th:block>
 
-<div th:fragment="listingResultsPagination" th:if="${stockPage.totalPages >= 1}" id="paginationDiv">
+<div th:fragment="listingResultsPagination"
+     th:if="${stockPage.totalPages >= 1}"
+     id="paginationDiv">
     <ul>
         <li th:each="pageNumber : ${pageNumbers}"
-            th:class="${pageNumber} == ${currentPage} ? active">
+            th:class="${pageNumber} == ${stockPage.number + 1} ? active">
             <th:block th:unless="${pageNumber} == '...'">
                 <a th:text="${pageNumber}"
                    th:href="@{${paginationDestinationUrl}+${stockPage.size}+'&page='+${pageNumber}}"
-                th:alt-title="'page ' + ${pageNumber}">
+                   th:alt-title="'page ' + ${pageNumber}">
                     <!-- th:href="@{/stocks(size=${stockPage.size}, page=${pageNumber})}" -->
                 </a>
             </th:block>
@@ -226,7 +332,9 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
     </ul>
 </div>
 
-<footer th:fragment="footer" class="navbar fixed-bottom navbar-expand-lg navbar-dark bg-primary" id="footer-showcase">
+<footer th:fragment="footer"
+        class="navbar fixed-bottom navbar-expand-lg navbar-dark bg-primary"
+        id="footer-showcase">
     <div>
         Copyright &copy; &#8559;&#8559;&#8553;&#8553; Patent Investor - “Investing for everyone, from the Cash-strapped
         to the deep-pocketed”

@@ -12,11 +12,11 @@ import java.util.List;
  */
 @Entity
 public class Tag extends AbstractEntity {
-    @Size(min = 1, max = 25, message = "Investment field must be between 1 and 25 characters")
+    @Size(min = 2, max = 25, message = "Investment field must be between 1 and 25 characters")
     @NotBlank
     private String name;
 
-    @Size(min = 1, max = 300, message = "Description of the investment field must be between 1 and 300 characters")
+    @Size(min = 2, max = 300, message = "Description of the investment field must be between 1 and 300 characters")
     @NotBlank
     private String description;
 

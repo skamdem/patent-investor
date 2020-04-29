@@ -1,10 +1,24 @@
 <!DOCTYPE html>
-<html lang=en xmlns:th="http://www.thymeleaf.org/">
-<head>
-    <meta charset="UTF-8"/>
-    <title></title>
-</head>
-<body>
+<html lang="en" xmlns:th="http://www.thymeleaf.org/">
+<head th:replace="fragments :: head"></head>
+<body class="container">
+<div th:replace="fragments :: header"></div>
+<div th:replace="fragments :: messages"></div>
+
+<div class="container body-content">
+    <form method="post" action="/stocks/add-tag">
+        <div class="form-group">
+            <input type="hidden" th:field="${stockTag.stock}">
+            <select th:field="${stockTag.tag}">
+                <option th:each="tag : ${tags}"
+                        th:value="${tag.id}"
+                        th:text="${tag.name}"
+                ></option>
+            </select>
+        </div>
+        <input type="submit" class="btn btn-success" value="Add Tag">
+    </form>
+</div>
 
 <div th:insert="fragments :: footer"></div>
 </body>

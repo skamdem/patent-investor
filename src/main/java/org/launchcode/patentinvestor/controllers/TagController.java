@@ -10,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -22,7 +23,7 @@ import java.util.stream.IntStream;
  */
 @Controller
 @RequestMapping("tags")
-public class TagController {
+public class TagController extends AbstractBaseController {
 
     static final int numberOfItemsPerPage = 10;
 
@@ -51,7 +52,8 @@ public class TagController {
             List<Integer> pageNumbers = IntStream.rangeClosed(1, totalPages)
                     .boxed()
                     .collect(Collectors.toList());
-            model.addAttribute("pageNumbers", pageNumbers);
+            List<String> reducedPagination = paginatedListingService.paginating(currentPage, pageNumbers.size());
+            model.addAttribute("pageNumbers", reducedPagination);//pageNumbers);
         }
         //model.addAttribute("tags", tagRepository.findAll());
         return "tags/index";
@@ -65,17 +67,20 @@ public class TagController {
     }
 
     @PostMapping("create")
-    public String processCreateTagForm(@Valid @ModelAttribute Tag tag,
-                                       Errors errors, Model model) {
-
+    public String processCreateTagForm(
+            @Valid @ModelAttribute Tag tag,
+            Errors errors,
+            Model model,
+            RedirectAttributes redirectAttributes) {
         if (errors.hasErrors()) {
-            model.addAttribute("title", "Create Tag (Investment field)");
+            model.addAttribute("title", "Create tag (investment field)");
             model.addAttribute(tag);
+            model.addAttribute(MESSAGE_KEY, "danger|Failed to create a new investment field");
             return "tags/create";
         }
-
         tagRepository.save(tag);
-        return "redirect:";
+        redirectAttributes.addFlashAttribute(MESSAGE_KEY, "success|New investment field " + tag.getDisplayName() + " created");
+        return "redirect:/tags";
     }
 
     @GetMapping("delete")
@@ -86,32 +91,51 @@ public class TagController {
     }
 
     @PostMapping("delete")
-    public String processDeleteTagForm(@RequestParam(required = false) int[] tagIds) {
+    public String processDeleteTagForm(
+            @RequestParam(required = false) int[] tagIds,
+            RedirectAttributes redirectAttributes) {
         if (tagIds != null) {
             for (int id : tagIds) {
                 //tagRepository
                 tagRepository.deleteById(id);
             }
+            redirectAttributes.addFlashAttribute(MESSAGE_KEY, "success|" + tagIds.length + " investment field(s) deleted");
+            return "redirect:/tags";
         }
-        return "redirect:";
+        redirectAttributes.addFlashAttribute(MESSAGE_KEY, "info|No investment field deleted");
+        return "redirect:/tags";
     }
 
     @GetMapping("edit/{tagId}")
-    public String displayEditForm(Model model, @PathVariable int tagId) {
-        String tagName = tagRepository.findById(tagId).get().getDisplayName();
+    public String displayEditForm(
+            Model model,
+            @PathVariable int tagId) {
+        Tag tag = tagRepository.findById(tagId).get();
+        String tagName = tag.getDisplayName();
         model.addAttribute("title",
                 "Edit investment field " + tagName);
-        model.addAttribute("theTag", tagRepository.findById(tagId).get());
+        model.addAttribute("theTag", tag);
+        if (tag.getStocks().size() > 0) {
+            model.addAttribute(MESSAGE_KEY, "warning|" +
+                    tag.getDisplayName() +
+                    " is currently set to " +
+                    tag.getStocks().size() + " stock(s) that would be affected");
+        }
         return "tags/edit";
     }
 
     @PostMapping("edit")
-    public String processEditForm(int tagId, String name, String description) {
+    public String processEditForm(
+            int tagId,
+            String name,
+            String description,
+            RedirectAttributes redirectAttributes) {
         Optional<Tag> result = tagRepository.findById(tagId);
         Tag tag = result.get();
         tag.setDescription(description);
         tag.setName(name);
         tagRepository.save(tag);
-        return "redirect:";
+        redirectAttributes.addFlashAttribute(MESSAGE_KEY, "success|" + tag.getDisplayName() + " successfully edited");
+        return "redirect:/tags";
     }
 }

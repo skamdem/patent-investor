@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org/">
+<head th:replace="fragments :: head"></head>
+<body class="container">
+<div th:replace="fragments :: header"></div>
+<div th:replace="fragments :: messages"></div>
+
+<div class="row">
+    <div class="col-sm-12 col-md-4 merge-with-background">
+        <div class="card mb-4 merge-with-background">
+            <div class="card-body text-left merge-with-background">
+                <h4 class="card-text">
+                    Net worth: $ <span th:text="${netWorth}">0.0</span>
+                </h4>
+            </div>
+        </div>
+    </div>
+    <div class="col merge-with-background">
+        <div class="card merge-with-background">
+            <div class="card-body text-right merge-with-background">
+                <h4 class="card-text">
+                    Aggregated patents registered : <span th:text="${aggregatedPatents}">0</span>
+                </h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col">
+        <table class="table table-borderless table-striped table-dark">
+            <thead class="thead-dark">
+            <th:block th:replace="fragments :: headerStocksRow"></th:block>
+            <!-- tr>
+                <th>Ticker</th>
+
+                <th># of shares</th>    [My portfolio]
+                <th>% on portfolio</th> [My portfolio]
+
+                <th>Last Price</th>
+                <th>Patents Portfolio</th>
+
+                <th>Track stock</th>     [Divest stock]
+            </tr -->
+            </thead>
+            <tbody>
+            <th:block th:replace="fragments :: listingResults"></th:block>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<th:block th:replace="fragments :: listingResultsPagination"></th:block>
+
+<div th:insert="fragments :: footer"></div>
+</body>
+</html>

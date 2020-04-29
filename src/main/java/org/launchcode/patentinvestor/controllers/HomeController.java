@@ -18,7 +18,7 @@ public class HomeController {
         actionChoices.put("stocks/search", "Search stock");
         actionChoices.put("stocks", "All Stocks");
         actionChoices.put("tags", "All investment fields");
-        actionChoices.put("tags/delete", "Delete investment field");
+        actionChoices.put("stocks/portfolio", "Portfolio");
 
         model.addAttribute("actions", actionChoices);
         model.addAttribute("title", "Home");
