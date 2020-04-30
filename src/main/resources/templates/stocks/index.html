@@ -9,33 +9,49 @@
 
 <!-- main class="container-fluid" -->
 
-    <h2 th:unless="${stockPage} and ${stockPage.content.size()}">No stocks were found!</h2>
+<h2 th:unless="${stockPage} and ${stockPage.content.size()}">
+    No stocks were found!
+</h2>
 
-    <div class="row">
-        <div class="col">
-            <table class="table table-borderless table-striped table-dark">
-                <thead class="thead-dark">
-                <th:block th:replace="fragments :: headerStocksRow"></th:block>
-                <!-- tr>
-                    <th>Ticker</th>
-                    <th>Last Price</th>
-                    <th>Patents Portfolio</th>
-                    <th>Track stock</th>
-                </tr -->
-                </thead>
-                <tbody>
-                <tr>
-                    <td>IP30<br/><span>30 most patented companies</span></td>
-                    <td>xxx.xx<br/><span>hour</span></td>
-                    <td>xxx.xx<br/><span>hour</span></td>
-                    <td></td>
-                </tr>
-                <th:block th:replace="fragments :: listingResults"></th:block>
-                </tbody>
-            </table>
+<div th:if="${stockPage != null} and ${stockPage.content.size() > 0}" class="row">
+    <div class="col-sm-12 col-md-4 merge-with-background">
+        <div class="card mb-4 merge-with-background">
+            <div class="card-body text-left merge-with-background">
+                <a th:href="@{${'/stocks/callAPIs'}}"
+                   th:alt-title="'Query API to refresh stocks data'"
+                   class="btn btn-info mb-3">
+                    Refresh stock data
+                </a>
+            </div>
         </div>
     </div>
-    <th:block th:replace="fragments :: listingResultsPagination"></th:block>
+</div>
+
+<div class="row">
+    <div class="col">
+        <table class="table table-borderless table-striped table-dark">
+            <thead class="thead-dark">
+            <th:block th:replace="fragments :: headerStocksRow"></th:block>
+            <!-- tr>
+                <th>Ticker</th>
+                <th>Last Price</th>
+                <th>Patents Portfolio</th>
+                <th>Track stock</th>
+            </tr -->
+            </thead>
+            <tbody>
+            <tr>
+                <td>IP30<br/><span>30 most patented companies</span></td>
+                <td>xxx.xx<br/><span>hour</span></td>
+                <td>xxx.xx<br/><span>hour</span></td>
+                <td></td>
+            </tr>
+            <th:block th:replace="fragments :: listingResults"></th:block>
+            </tbody>
+        </table>
+    </div>
+</div>
+<th:block th:replace="fragments :: listingResultsPagination"></th:block>
 
 <!--/main -->
 

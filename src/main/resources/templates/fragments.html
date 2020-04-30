@@ -255,7 +255,17 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
         </td>
         <!-- Begin optional section for portfolio page-->
         <td th:if="${netWorth != null}">
-            <span th:each="tag : ${stock.getTags()}" th:text="${tag.getDisplayName()} + ' '"></span>
+            <span th:unless="${stock.tags.size()} > 0"
+                  th:text="'No tags found'"
+            ></span>
+            <th:block th:if="${stock.getTags().size()>=1}">
+                <th:block th:each="tag : ${stock.getTags()}">
+                    <a th:text="${tag.getDisplayName()} + ' '"
+                       th:alt-title="'View details of ' + ${tag.getDisplayName()}"
+                       th:href="'/tags/view/'+${tag.id}">
+                    </a>
+                </th:block>
+            </th:block>
         </td>
         <!-- End optional section for portfolio page-->
         <td>
@@ -337,7 +347,9 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
         id="footer-showcase">
     <div>
         Copyright &copy; &#8559;&#8559;&#8553;&#8553; Patent Investor - “Investing for everyone, from the Cash-strapped
-        to the deep-pocketed”
+        to the deep-pocketed”<br/>
+        Data provided by <a target="_blank" href="https://iexcloud.io">IEX Cloud</a> and
+        <a target="_blank" href="https://developer.uspto.gov/api-catalog/patentsview">USPTO</a>
     </div>
 </footer>
 </body>

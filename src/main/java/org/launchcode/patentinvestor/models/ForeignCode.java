@@ -4,8 +4,8 @@ package org.launchcode.patentinvestor.models;
  * Created by kamdem
  */
 public enum ForeignCode {
-    FOREIGN("Foreign Corp.", 1), //3
-    DOMESTIC("Domestic Corp.", 0); //2
+    FOREIGN("Foreign Corporation", 1), //3
+    DOMESTIC("Domestic Corporation", 0); //2
 
     private final String displayName;
     private final int usptoCode;

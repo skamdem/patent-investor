@@ -18,12 +18,17 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import static org.launchcode.patentinvestor.models.ApiData.BASE_URL_SANDBOX_IEX;
+import static org.launchcode.patentinvestor.models.ApiData.BASE_URL_USPTO;
 
 /**
  * Created by kamdem
@@ -382,11 +387,15 @@ public class StockController extends AbstractBaseController {
         Optional<Stock> result = stockRepository.findById(stockId);
         if (result.isEmpty()) {
             model.addAttribute("title", "Invalid Stock ID: " + stockId);
+            //model.addAttribute(MESSAGE_KEY, "warning|No matching stock found in your portfolio");
         } else { // there are stocks for that stockId!
             Stock stock = result.get();
             model.addAttribute("title", "Summary of '" + stock.getTicker() + "'");
             model.addAttribute("stock", stock);
             model.addAttribute("exchangePlatforms", stockExchanges);
+            if(stock.getStockDetails().isInPortfolio()) {
+                model.addAttribute(MESSAGE_KEY, "info|The stock '" + stock.getTicker() + "' is currently in your portfolio");
+            }
         }
         return "stocks/detail";
     }
@@ -410,8 +419,6 @@ public class StockController extends AbstractBaseController {
             @RequestParam("page") Optional<Integer> page,
             @RequestParam("size") Optional<Integer> size,
             @RequestParam("sortIcon") Optional<String> sortIcon) {
-
-        getTwoApiData();
 
         int currentPage = page.orElse(1);
         int pageSize = size.orElse(numberOfItemsPerPage);
@@ -560,11 +567,67 @@ public class StockController extends AbstractBaseController {
     }
 
     /**
+     * Function to replace Hyphen with Space
+     * @param str
+     * @return
+     */
+    static String replaceHyphen(String str) {
+        String s = "";
+        // Traverse the string character by character.
+        for (int i = 0; i < str.length(); ++i) {
+            // Changing the ith character
+            // to ' ' if it's '-'.
+            if (str.charAt(i) == '-')
+                s += ' ';
+            else
+                s += str.charAt(i);
+        }
+        // return the modified string.
+        return s;
+    }
+
+    /**
      * Both "BASE_URL" end with '/'
      */
-    private void getTwoApiData() {
+    /**
+     * Display details of my portfolio
+     * <p>
+     * "headerStocksRow" works with:
+     * sortIcon (Optional), iconsDestinationUrl, selectedColor, baseColor
+     * <p>
+     * "listingResults" works with: stockPage
+     * <p>
+     * "listingResultsPagination" works with:
+     * stockPage, pageNumbers, currentPage, paginationDestinationUrl
+     * <p>
+     * This method returns at URL /stocks/portfolio
+     */
+    @GetMapping("callAPIs")
+    public String displayStocksAfterCallingAPIs() {
+        List<Stock> listOfStocks = (List<Stock>) stockRepository.findAll();
 
-//        class InnerUsptoObject {
+        //Preparatory settings For USPTO API call
+        final String o = "{\"page\":0,\"per_page\":1}";
+        final String dateForUsptoApiUpdate = replaceHyphen(LocalDate.now().toString()); // e.g "2020 04 29"
+        String usptoStockUrlString = "";
+        String usptoApiQueryResult = "";
+        String stock_q = ""; // contains the usptoApi key
+
+        //Preparatory settings For IEX API call
+        String iexStockUrlString = "";
+        String iexApiQueryResult = "";
+
+//        final String uri = BASE_URL_LIVE_IEX;//BASE_URL_SANDBOX_IEX
+//        //IEX_SANDBOX_PUBLIC_TOKEN
+//        //IEX_SANDBOX_SECRET_TOKEN
+//        System.out.println(result);
+//        //IEX_TEST_TOKEN
+//        //IEX_PUBLIC_TOKEN
+//        //IEX_SECRET_TOKEN
+
+//        RestTemplate restTemplate = new RestTemplate();
+//        String result = restTemplate.getForObject(uri, String.class);
+        //    class InnerUsptoObject {
 //            String patents;
 //            int count;
 //            int  total_patent_count;
@@ -573,60 +636,57 @@ public class StockController extends AbstractBaseController {
 ////            }
 //        }
 
-        //List<Stock> listOfStocks = (List<Stock>) stockRepository.findAll();
-        //String urlString = "https://www.patentsview.org/api/patents/query?q={\"assignee_id\":\"org_2iJoxmpyjABCOAVmBomhr\"}&f=[\"assignee_type\"]&o={\"page\":0,\"per_page\":1}";//BASE_URL_USPTO;
-        String q = "{\"assignee_id\":\"org_2iJoxmpyjBCOAVmBomhr\"}";
-        //String f = "[\"assignee_type\"]";
-        String o = "{\"page\":0,\"per_page\":1}";
-        //final String uri = urlString;
-        String urlString = "https://www.patentsview.org/api/patents/query?q={q}&f=[\"assignee_type\"]&o={o}";//BASE_URL_USPTO;
-        RestTemplate restTemplate = new RestTemplate();
-        String result = restTemplate.getForObject(urlString, String.class, q, o);
-        //System.out.println(result);
-        // parsing result
-        try {
-            Object obj = new JSONParser().parse(result);
+        int i = 0; //for display of API update progress
+        for (Stock stock : listOfStocks) {
+            //GET USPTO Data while using usptoId
+            usptoStockUrlString = BASE_URL_USPTO + "api/patents/query?q={stock_q}&f=[\"assignee_type\"]&o={o}";
+            stock_q = "{\"assignee_id\":\"" + stock.getUsptoId() + "\"}";
+            RestTemplate usptoRestTemplate = new RestTemplate();
+            usptoApiQueryResult = usptoRestTemplate.getForObject(usptoStockUrlString, String.class, stock_q, o);
 
-             //typecasting obj to JSONObject
-            JSONObject jo = (JSONObject) obj;
-            long total_patent_count = (long) jo.get("total_patent_count");
-             System.out.println(total_patent_count);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        //System.out.println(result);
-
-//        final String uri = BASE_URL_LIVE_IEX;//BASE_URL_SANDBOX_IEX
-//        //IEX_SANDBOX_PUBLIC_TOKEN
-//        //IEX_SANDBOX_SECRET_TOKEN
-//        RestTemplate restTemplate = new RestTemplate();
-//        String result = restTemplate.getForObject(uri, String.class);
-//        System.out.println(result);
-//        //IEX_TEST_TOKEN
-//        //IEX_PUBLIC_TOKEN
-//        //IEX_SECRET_TOKEN
-
-//        for (Stock stock : listOfStocks) {
-//            //GET USPTO Data while using usptoId
-//            //in stock.stockDetails: lastUsptoApiUpdate, totalNumberOfPatents
-//            String usptoId = stock.getUsptoId();
-//            int totalNumberOfPatents = 0;
-//            String lastUsptoApiUpdate = "";
-//            stock.getStockDetails().setTotalNumberOfPatents(totalNumberOfPatents);
-//            stock.getStockDetails().setLastUsptoApiUpdate(lastUsptoApiUpdate);
-//
-//            //GET IEX Data while using usptoId :
-//            //in stock.stockDetails: lastTradeTime, latestPrice
+            //GET IEX Data while using iexId
 //            String iexId = stock.getIexId();
-//            String lastTradeTime ="";
-//            double latestPrice = 0.0;
-//            stock.getStockDetails().setLastTradeTime(lastTradeTime);
-//            stock.getStockDetails().setLatestPrice(latestPrice);
-//
-//            //Save obtained data to update local repositories
-//            stockRepository.save(stock);
-//        }
+//            iexStockUrlString = BASE_URL_SANDBOX_IEX + "";
+//            RestTemplate iexRestTemplate = new RestTemplate();
+//            iexApiQueryResult = usptoRestTemplate.getForObject(iexStockUrlString, String.class);
+            //System.out.println(iexApiQueryResult);
 
+            // parsing usptoApiQueryResult and iexApiQueryResult
+            try {
+                //For USPTO
+                Object usptoObj = new JSONParser().parse(usptoApiQueryResult);
+                JSONObject usptoJo = (JSONObject) usptoObj; //typecasting usptoObj to JSONObject
+                long total_patent_count = (long) usptoJo.get("total_patent_count");
+                stock.getStockDetails().setTotalNumberOfPatents(total_patent_count);
+                stock.getStockDetails().setLastUsptoApiUpdate(dateForUsptoApiUpdate);
+
+                //For IEX using iexId
+//                Object iexObj = new JSONParser().parse(iexApiQueryResult);
+//                JSONObject iexJo = (JSONObject) iexObj; //typecasting iexObj to JSONObject
+//                LocalDateTime lastTradeTime = LocalDateTime.now();
+//                double latestPrice = 0.0;
+                // long lastTradeTime = (long) iexJo.get("total_patent_count");
+                // long latestPrice = (long) iexJo.get("total_patent_count");
+
+                //Save IEX API updates: lastTradeTime, latestPrice
+//                stock.getStockDetails().setLastTradeTime(lastTradeTime.toString());
+//                stock.getStockDetails().setLatestPrice(latestPrice);
+
+                //Save USPTO API updates: lastUsptoApiUpdate, totalNumberOfPatents
+                stock.getStockDetails().setTotalNumberOfPatents(total_patent_count);
+                stock.getStockDetails().setLastUsptoApiUpdate(dateForUsptoApiUpdate);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+            //Save obtained data to update local repositories
+            stockRepository.save(stock);
+            System.out.println("stock " + i++ + " --> " + stock.getStockDetails().getTotalNumberOfPatents());
+            //System.out.println("stock " + i++ + " --> " + stock.getStockDetails().getLatestPrice());
+        }
+
+        System.out.println("Completed API calls");
+        return "redirect:/stocks";
     }
 
 }

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org/">
+<head th:replace="fragments :: head"></head>
+<body class="container">
+<header th:replace="fragments :: header"></header>
+<div th:replace="fragments :: messages"></div>
+
+<div class="row">
+    <h6 th:text="'Description of ' + ${theTag.getDisplayName()} + ':&nbsp;'"
+        th:style="'display:block'">
+    </h6>
+    <div th:text="' ' + ${theTag.getDescription()}"></div>
+</div>
+<div class="row">
+    <p>
+        <span th:if="${theTag.getStocks().size() > 1}"
+              th:text="'The following ' + ${theTag.getStocks().size()} + ' stocks are set to this investment field.'">
+        </span>
+        <span th:if="${theTag.getStocks().size() == 1}"
+              th:text="'The following stock is set to this investment field.'">
+        </span>
+    </p>
+</div>
+<div class="row" th:if="${theTag.getStocks().size() == 0}">
+    <p th:text="'There are no stocks set to the investment field ' + ${theTag.getDisplayName()}"></p>
+</div>
+<div class="row" th:if="${theTag.getStocks().size() > 0}">
+    <div class="col">
+        <table class="table table-hover">
+            <tr th:each="stock : ${theTag.getStocks()}">
+                <th>
+                    <a th:alt-title="'View details of ' + ${{stock.ticker}}"
+                       th:href="@{${'/stocks/detail/'+stock.id}}">
+                        <span th:text="${{stock.ticker}}"></span>
+                    </a>
+                </th>
+                <td>
+                    <span th:if="${stock.getTags().size() < 2}"
+                          th:text="'No other tag for this stock'">
+                    </span>
+                    <th:block th:if="${stock.getTags().size()>=2}">
+                        <span th:text="'Additional tags for this stock: '"></span>
+
+                        <th:block th:each="tag : ${stock.getTags()}"
+                                  th:if="${tag.id != theTag.id}">
+                            <a th:text="${tag.getDisplayName()} + ' '"
+                               th:alt-title="'View details of ' + ${tag.getDisplayName()}"
+                               th:href="'/tags/view/'+${tag.id}">
+                            </a>
+                        </th:block>
+                    </th:block>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div th:insert="fragments :: footer"></div>
+</body>
+</html>

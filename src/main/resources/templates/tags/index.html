@@ -30,7 +30,7 @@
     <tr th:each="tag, iStat : ${tagPage.content}">
         <td>
             <a th:text="'#'+${tag.name}"
-               th:href="'/tags?tagId='+${tag.id}">
+               th:href="'/tags/view/'+${tag.id}">
             </a>
         </td>
         <td>

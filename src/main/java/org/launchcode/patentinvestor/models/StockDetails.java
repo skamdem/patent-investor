@@ -16,20 +16,20 @@ public class StockDetails extends AbstractEntity {
     private ForeignCode foreignCode;
     private String lastUsptoApiUpdate;
 
-    @Column(columnDefinition="BOOLEAN DEFAULT false")
+    @Column(columnDefinition = "BOOLEAN DEFAULT false")
     private boolean inPortfolio = false;
 
     @Column(columnDefinition = "integer default 0")
     private int numberOfShares = 0;
 
     @Column(columnDefinition = "integer default 0")
-    private int totalNumberOfPatents = 0;
+    private long totalNumberOfPatents = 0;
 
     @Column(columnDefinition = "double default 0.0")
     private double latestPrice = 0.0;
 
     public StockDetails(String companyName, String lastTradeTime, String exchange,
-                        ForeignCode foreignCode, String lastUsptoApiUpdate, int totalNumberOfPatents,
+                        ForeignCode foreignCode, String lastUsptoApiUpdate, long totalNumberOfPatents,
                         double latestPrice, boolean inPortfolio, int numberOfShares) {
         this.companyName = companyName;
         this.lastTradeTime = lastTradeTime;
@@ -85,11 +85,11 @@ public class StockDetails extends AbstractEntity {
         this.lastUsptoApiUpdate = lastUsptoApiUpdate;
     }
 
-    public int getTotalNumberOfPatents() {
+    public long getTotalNumberOfPatents() {
         return totalNumberOfPatents;
     }
 
-    public void setTotalNumberOfPatents(int totalNumberOfPatents) {
+    public void setTotalNumberOfPatents(long totalNumberOfPatents) {
         this.totalNumberOfPatents = totalNumberOfPatents;
     }
 

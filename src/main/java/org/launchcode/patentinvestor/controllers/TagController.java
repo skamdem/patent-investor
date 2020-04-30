@@ -106,6 +106,24 @@ public class TagController extends AbstractBaseController {
         return "redirect:/tags";
     }
 
+    @GetMapping("view/{tagId}")
+    public String displayTag(
+            Model model,
+            @PathVariable int tagId) {
+        Tag tag = tagRepository.findById(tagId).get();
+        String tagName = tag.getDisplayName();
+        model.addAttribute("title",
+                "Investment field " + tagName);
+        model.addAttribute("theTag", tag);
+        if (tag.getStocks().size() > 0) {
+            model.addAttribute(MESSAGE_KEY, "info|" +
+                    tag.getDisplayName() +
+                    " is currently set to " +
+                    tag.getStocks().size() + " stock(s).");
+        }
+        return "tags/view";
+    }
+
     @GetMapping("edit/{tagId}")
     public String displayEditForm(
             Model model,

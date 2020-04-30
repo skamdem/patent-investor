@@ -11,6 +11,10 @@ body {
   background-color: $background-color;
   margin: 0;
 }*/
+a {
+  color: coral;
+}
+
 #paginationDiv a:hover {
   cursor: pointer;
 }

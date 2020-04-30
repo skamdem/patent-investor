@@ -57,9 +57,14 @@
             <span th:unless="${stock.tags.size()} > 0"
                   th:text="'No tag set for this stock'"
             ></span>
-            <span th:each="tag : ${stock.tags}"
-                  th:text="${tag.getDisplayName()}+' '"
-            ></span>
+            <th:block th:if="${stock.getTags().size()>=1}">
+                <th:block th:each="tag : ${stock.getTags()}">
+                    <a th:text="${tag.getDisplayName()} + ' '"
+                       th:alt-title="'View details of ' + ${tag.getDisplayName()}"
+                       th:href="'/tags/view/'+${tag.id}">
+                    </a>
+                </th:block>
+            </th:block>
         </td>
     </tr>
     <tr th:if="${stock.getStockDetails().isInPortfolio()}">
