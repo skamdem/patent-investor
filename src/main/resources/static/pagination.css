@@ -11,9 +11,6 @@ body {
   background-color: $background-color;
   margin: 0;
 }*/
-a {
-  color: coral;
-}
 
 #paginationDiv a:hover {
   cursor: pointer;
@@ -25,6 +22,11 @@ a {
   justify-content: center;
   flex-direction: column;
 }
+
+#paginationDiv {
+    margin-bottom: 100px;
+}
+
 #paginationDiv ul {
   list-style: none;
   padding: 0;

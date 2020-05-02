@@ -32,25 +32,68 @@
     </div>
 </div>
 
+<div th:if="${website}"
+     th:style="'text-align: center; display: block;'"
+     th:alt-title="'Visit website of ' + ${stock.ticker}" class="row">
+    <a target="_blank" th:href="${website}">
+        <img th:src="${logoUrl}"/>
+    </a>
+    <br>
+</div>
+
+<div th:if="${website}" class="row">
+    <h6 th:text="'Description of ' + ${stock.getTicker()} + ':&nbsp;'"
+        th:style="'display:block'">
+    </h6>
+    <div th:style="'text-align: justify'" th:text="' ' + ${description}"></div>
+    <br>
+</div>
+
 <table class="table table-striped">
     <tr>
-        <th>Primary listing exchange : </th>
-    <!--    -->
-        <td th:with="key=${stock.stockDetails.getExchange()}"
-            th:text="${exchangePlatforms.get(key)}"></td>
-        <!--td th:each="key : ${exchangePlatforms.keySet()}"
-            th:if ="key == ${stock.stockDetails.getExchange()}"
-            th:text="${exchangePlatforms.get(key)}"></td-->
-
-    </tr>
-    <tr>
-        <th>Name of company :</th>
+        <th>Full name of company :</th>
         <td th:text="${stock.getStockDetails().getCompanyName()}"></td>
     </tr>
     <tr>
+        <th>Primary listing exchange :</th>
+        <td th:with="key=${stock.stockDetails.getExchange()}"
+            th:text="${exchangePlatforms.get(key)}"></td>
+    </tr>
+    <th:block th:if="${website}">
+        <tr>
+            <th>Industry / Sector :</th>
+            <td th:text="${industry} + ' / ' + ${sector}"></td>
+        </tr>
+        <tr>
+            <th>Employees :</th>
+            <td th:text="${employees} + ' people'"></td>
+        </tr>
+        <tr>
+            <th>CEO :</th>
+            <td th:text="${CEO}"></td>
+        </tr>
+        <tr>
+            <th>Website :</th>
+            <td><a th:text="${website}" target="_blank"
+                   th:alt-title="'Visit website of ' + ${stock.ticker}" class="row"
+                   th:href="${website}">
+            </a>
+            </td>
+        </tr>
+        <tr>
+            <th>Address :</th>
+            <td th:text="${address} + ' ' + ${city} + ' ' + ${state} + ' ' + ${zip} + ' ' + ${country}"></td>
+        </tr>
+        <tr>
+            <th>Phone :</th>
+            <td th:text="${phone}"></td>
+        </tr>
+    </th:block>
+
+    <!-- tr>
         <th>Location :</th>
         <td th:text="${stock.getStockDetails().getForeignCode().getDisplayName()}"></td>
-    </tr>
+    </tr -->
     <tr>
         <th>List of tags :</th>
         <td>
@@ -68,7 +111,7 @@
         </td>
     </tr>
     <tr th:if="${stock.getStockDetails().isInPortfolio()}">
-        <th>Number of Shares bought :</th>
+        <th>Number of shares in portfolio :</th>
         <td th:text="${stock.getStockDetails().getNumberOfShares()}"></td>
     </tr>
 </table>
