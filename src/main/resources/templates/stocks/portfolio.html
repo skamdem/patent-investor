@@ -10,7 +10,9 @@
         <div class="card mb-4 merge-with-background">
             <div class="card-body text-left merge-with-background">
                 <h4 class="card-text">
-                    Net worth: $ <span th:text="${netWorth}">0.0</span>
+                    Net worth: $ <span th:style="'color:green'"
+                                       th:text="${#numbers.formatDecimal(netWorth, 1, 'COMMA', 2, 'POINT')}">
+                    0.0</span>
                 </h4>
             </div>
         </div>
@@ -19,13 +21,17 @@
         <div class="card merge-with-background">
             <div class="card-body text-right merge-with-background">
                 <h4 class="card-text">
-                    Aggregated patents registered : <span th:text="${aggregatedPatents}">0</span>
+                    <span th:style="'color:green'" th:text="${#numbers.formatDecimal(aggregatedPatents, 0, 'COMMA', 0, 'POINT')}">0</span>
+                    aggregated patents registered
                 </h4>
             </div>
         </div>
     </div>
 </div>
-
+<div class="row">
+    <!-- p>Your portfolio currently contains <span th:text="${stockPage.getTotalPages()}"></span> stocks</p -->
+    <br>
+</div>
 <div class="row">
     <div class="col">
         <table class="table table-borderless table-striped table-dark">

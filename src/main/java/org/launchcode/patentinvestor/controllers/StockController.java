@@ -22,10 +22,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -278,6 +275,7 @@ public class StockController extends AbstractBaseController {
         model.addAttribute("paginationDestinationUrl", paginationDestinationUrl);
         //model.addAttribute("currentPage", currentPage);
 
+        loadIP30PriceAndPatentsFootprint(model);
         if (tagId == null) { // display ALL stocks
             model.addAttribute("title", "All Stocks");
             listOfStocksFound = (List<Stock>) stockRepository.findAll();
@@ -436,7 +434,7 @@ public class StockController extends AbstractBaseController {
         model.addAttribute("iconsDestinationUrl", iconsDestinationUrl);
         model.addAttribute("paginationDestinationUrl", paginationDestinationUrl);
 
-        model.addAttribute("title", "My Stocks Portfolio");
+        model.addAttribute("title", "My stocks portfolio");
         List<Stock> listOfStocks = (List<Stock>) stockRepository.findAll();
         List<Stock> portfolioList = new ArrayList<>();
 
@@ -444,7 +442,7 @@ public class StockController extends AbstractBaseController {
         double netWorth = 0.0;
         for (Stock stock : listOfStocks) {
             if (stock.getStockDetails().isInPortfolio()) {
-                netWorth += stock.getStockDetails().getLatestPrice();
+                netWorth += stock.getStockDetails().getLatestPrice()*stock.getStockDetails().getNumberOfShares();
                 aggregatedPatents += stock.getStockDetails().getTotalNumberOfPatents();
                 portfolioList.add(stock);
             }
@@ -568,6 +566,33 @@ public class StockController extends AbstractBaseController {
             e.printStackTrace();
         }
 
+    }
+
+    /**
+     * Display details of a stock
+     * This method returns at URL /stocks/detail
+     */
+    @GetMapping("remove-from-portfolio/{stockId}")
+    public String displayStockDetailsRemovedFromPortfolio(
+            @PathVariable Integer stockId,
+            Model model) {
+        Optional<Stock> result = stockRepository.findById(stockId);
+        if (result.isEmpty()) {
+            model.addAttribute("title", "Invalid Stock ID: " + stockId);
+        } else { // there are stocks for that stockId!
+            Stock stock = result.get();
+            stock.getStockDetails().setNumberOfShares(0);
+            stock.getStockDetails().setInPortfolio(false);
+            stockRepository.save(stock);
+            model.addAttribute(MESSAGE_KEY, "success|The stock '" + stock.getTicker() + "' has been removed from your portfolio. " +
+                    "All shares previously set to this stock have been wiped out.");
+            model.addAttribute("title", "Summary of '" + stock.getTicker() + "'");
+            model.addAttribute("stock", stock);
+            model.addAttribute("exchangePlatforms", stockExchanges);
+
+            loadAddtionalStockDataFromIexApi(stock.getTicker(), model);
+        }
+        return "stocks/detail";
     }
 
     // add tag to a specific stock : responds to /stocks/add-tag?stockId=13
@@ -815,9 +840,40 @@ public class StockController extends AbstractBaseController {
     @GetMapping("callAPIs")
     public String displayStocksAfterCallingAPIs() {
         loadUsptoAPI();
-//        loadIexApi();
+        loadIexApi();
         System.out.println("Completed API calls");
         return "redirect:/stocks";
+    }
+
+    @GetMapping("IP30")
+    public String displayIP30(Model model) {
+        int size = 30;
+        List<Stock> listOfStocks = (List<Stock>) stockRepository.findAll();
+        listOfStocks.sort(Comparators.patentsPortfolioComparator.reversed());
+        List<Stock> IP30List = new ArrayList<>(size);
+        IP30List.addAll(listOfStocks.subList(0, size));
+        model.addAttribute("title", "IP 30");
+        model.addAttribute("IP30List", IP30List);
+        loadIP30PriceAndPatentsFootprint(model);
+        model.addAttribute("exchangePlatforms", stockExchanges);
+        return "stocks/IP30";
+    }
+
+    void loadIP30PriceAndPatentsFootprint(Model model){
+        int size = 30;
+        List<Stock> listOfStocks = (List<Stock>) stockRepository.findAll();
+        listOfStocks.sort(Comparators.patentsPortfolioComparator.reversed());
+        List<Stock> IP30List = new ArrayList<>(size);
+        IP30List.addAll(listOfStocks.subList(0, size));
+        long aggregatedPatents = 0L;
+        double numerator = 0.0;
+        for (Stock stock : IP30List){
+            aggregatedPatents += stock.getStockDetails().getTotalNumberOfPatents();
+            numerator += stock.getStockDetails().getTotalNumberOfPatents()*stock.getStockDetails().getLatestPrice();
+        }
+        double weightedPrice = numerator/aggregatedPatents;
+        model.addAttribute("aggregatedPatents", aggregatedPatents);
+        model.addAttribute("weightedPrice", weightedPrice);
     }
 
 }

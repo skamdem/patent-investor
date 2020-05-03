@@ -251,7 +251,7 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
             <span th:text="${stock.stockDetails.exchange}"></span>
         </td>
         <td>
-            <span th:text="${stock.stockDetails.totalNumberOfPatents}"></span><br/>
+            <span th:text="${#numbers.formatDecimal(stock.stockDetails.totalNumberOfPatents, 0, 'COMMA', 0, 'POINT')}"></span><br/>
             <span th:text="${stock.stockDetails.lastUsptoApiUpdate}"></span>
         </td>
         <!-- Begin optional section for portfolio page-->
@@ -291,7 +291,7 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
             <!-- Display this if inside portfolio page -->
             <th:block th:if="${netWorth != null}">
                 <a th:if="${stock.getStockDetails().isInPortfolio()}"
-                   th:href="@{${'/stocks/add-to-portfolio/'+stock.id}}"
+                   th:href="@{${'/stocks/remove-from-portfolio/'+stock.id}}"
                    th:alt-title="'Remove ' + ${stock.ticker} + ' from portfolio'"
                    class="btn btn-warning btn-sm">
                     remove from portfolio

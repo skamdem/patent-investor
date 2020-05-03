@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org/">
+<head th:replace="fragments :: head"></head>
+<body class="container">
+<div th:replace="fragments :: header"></div>
+<div th:replace="fragments :: messages"></div>
+
+<div class="row">
+    <div class="col-sm-12 col-md-4 merge-with-background">
+        <div class="card mb-4 merge-with-background">
+            <div class="card-body text-left merge-with-background">
+                <h4 class="card-text">
+                    $ <span th:style="'color:green'" th:text="${#numbers.formatDecimal(weightedPrice, 0, 'COMMA', 2, 'POINT')}">
+                    0.0</span> average value
+                </h4>
+                <!--                public String formatDecimal(Number target,-->
+                <!--                Integer minIntegerDigits,-->
+                <!--                String thousandsPointType,-->
+                <!--                Integer decimalDigits,-->
+                <!--                String decimalPointType)-->
+                <p class="card-text">
+                    Last Trade : <span th:text="${IP30List[0].stockDetails.getLastTradeTime()}">0</span>
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col merge-with-background">
+        <div class="card merge-with-background">
+            <div class="card-body text-right merge-with-background">
+                <h4 class="card-text">
+                    <span th:style="'color:green'" th:text="${#numbers.formatDecimal(aggregatedPatents, 0, 'COMMA', 0, 'POINT')}">0</span>
+                    aggregated patents registered
+                </h4>
+                <p class="card-text">
+                    Last update : <span th:text="${IP30List[0].stockDetails.getLastUsptoApiUpdate()}"></span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <h6 th:text="'Description of IP30 :&nbsp;'"
+        th:style="'display:block'">
+    </h6>
+    <div th:style="'text-align: justify'"><strong>IP30 stock index</strong> is a patents-weighted index serving as a benchmark covering
+        the 30 most patented companies.
+        It measures the stock performance of 30 companies listed on stock exchanges in the United States that hold the
+        largest number of patents portfolio.
+        Other popular stock indexes for other purposes include: S&P500, DJIA, IXIC etc.
+    </div>
+    <p>Below is a list of the companies currently making up IP30 ranked in descending order by the size of the patents portfolio</p>
+    <br>
+</div>
+
+<table class="table table-striped">
+    <tr>
+        <th>Full name of company</th>
+        <th>Ticker</th>
+        <th>Primary listing exchange</th>
+        <th>Latest price</th>
+        <th># of patents</th>
+    </tr>
+    <tr th:each="stock, iStat : ${IP30List}">
+        <td th:text="${{iStat.count+': '+stock.stockDetails.companyName}}"></td>
+        <td>
+            <a th:alt-title="'View details of ' + ${{stock.getTicker()}}"
+               th:href="@{${'/stocks/detail/'+stock.id}}">
+                <span th:text="${{stock.getTicker()}}"></span>
+            </a>
+        </td>
+        <td th:with="key=${stock.stockDetails.getExchange()}"
+            th:text="${exchangePlatforms.get(key)}"></td>
+        <td th:text="${stock.stockDetails.latestPrice}"></td>
+        <td th:text="${#numbers.formatDecimal(stock.stockDetails.totalNumberOfPatents, 0, 'COMMA', 0, 'POINT')}"></td>
+    </tr>
+</table>
+
+<div th:insert="fragments :: footer"></div>
+</body>
+</html>

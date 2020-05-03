@@ -41,9 +41,25 @@
             </thead>
             <tbody>
             <tr>
-                <td>IP30<br/><span>30 most patented companies</span></td>
-                <td>xxx.xx<br/><span>hour</span></td>
-                <td>xxx.xx<br/><span>hour</span></td>
+                <td>
+                    <a th:alt-title="'View details of IP30'"
+                       th:href="@{${'/stocks/IP30/'}}">
+                        <span th:text="'IP30'"></span>
+                        <br/>
+                        <span>30 most patented companies</span></a>
+                </td>
+                <td>
+                    <span th:style="'color:green; font-weight:bold'"
+                          th:text="${#numbers.formatDecimal(weightedPrice, 0, 'COMMA', 2, 'POINT')}">
+                    </span>
+                    <br/><span th:text="${stockPage.content[0].stockDetails.getLastTradeTime()}">hour</span>
+                </td>
+                <td>
+                    <span th:style="'color:green; font-weight:bold'"
+                          th:text="${#numbers.formatDecimal(aggregatedPatents, 0, 'COMMA', 0, 'POINT')}">
+                    </span>
+                    <br/><span th:text="${stockPage.content[0].stockDetails.getLastUsptoApiUpdate()}">hour</span>
+                </td>
                 <td></td>
             </tr>
             <th:block th:replace="fragments :: listingResults"></th:block>
