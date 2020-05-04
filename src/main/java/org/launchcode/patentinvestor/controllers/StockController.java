@@ -22,7 +22,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -336,45 +339,6 @@ public class StockController extends AbstractBaseController {
         return "stocks/index";
     }
 
-    /*
-    @GetMapping("create")
-    public String displayCreateStockForm(Model model) {
-        model.addAttribute("title", "Create Stock");
-        model.addAttribute(new Stock());
-        model.addAttribute("categories", stockCategoryRepository.findAll());
-        return "stocks/create";
-    }
-
-    @PostMapping("create")
-    public String processCreateStockForm(@ModelAttribute @Valid Stock newStock,
-                                         Errors errors, Model model) {
-        if (errors.hasErrors()) {
-            model.addAttribute("title", "Create Stock");
-            return "stocks/create";
-        }
-
-        stockRepository.save(newStock);
-        return "redirect:";
-    }*/
-
-    /*
-    @GetMapping("delete")
-    public String displayDeleteStockForm(Model model) {
-        model.addAttribute("title", "Delete Stocks");
-        model.addAttribute("stocks", stockRepository.findAll());
-        return "stocks/delete";
-    }
-
-    @PostMapping("delete")
-    public String processDeleteStocksForm(@RequestParam(required = false) int[] stockIds) {
-        if (stockIds != null) {
-            for (int id : stockIds) {
-                stockRepository.deleteById(id);
-            }
-        }
-        return "redirect:";
-    }*/
-
     /**
      * Display details of a stock
      * This method returns at URL /stocks/detail
@@ -395,9 +359,7 @@ public class StockController extends AbstractBaseController {
             if (stock.getStockDetails().isInPortfolio()) {
                 model.addAttribute(MESSAGE_KEY, "info|The stock '" + stock.getTicker() + "' is currently in your portfolio");
             }
-
             loadAddtionalStockDataFromIexApi(stock.getTicker(), model);
-
         }
         return "stocks/detail";
     }
@@ -442,7 +404,7 @@ public class StockController extends AbstractBaseController {
         double netWorth = 0.0;
         for (Stock stock : listOfStocks) {
             if (stock.getStockDetails().isInPortfolio()) {
-                netWorth += stock.getStockDetails().getLatestPrice()*stock.getStockDetails().getNumberOfShares();
+                netWorth += stock.getStockDetails().getLatestPrice() * stock.getStockDetails().getNumberOfShares();
                 aggregatedPatents += stock.getStockDetails().getTotalNumberOfPatents();
                 portfolioList.add(stock);
             }
@@ -491,6 +453,7 @@ public class StockController extends AbstractBaseController {
         model.addAttribute("aggregatedPatents", aggregatedPatents);
         model.addAttribute("netWorth", netWorth);
 
+        model.addAttribute(MESSAGE_KEY, "info|Click on the number of shares to adjust it for each stock");
         paginatedListingService.setListOfItems(portfolioList);
         Page<Stock> stockPage = paginatedListingService.findPaginated(PageRequest.of(currentPage - 1, pageSize));
         model.addAttribute("stockPage", stockPage);
@@ -506,7 +469,49 @@ public class StockController extends AbstractBaseController {
     }
 
     /**
-     * Display details of a stock
+     *
+     * @param model
+     * @param stockId
+     * @return
+     */
+    @GetMapping("adjust-shares-portfolio/{stockId}")
+    public String displayAdjustSharesInPortfolio(
+            Model model,
+            @PathVariable int stockId){
+        Stock stock = stockRepository.findById(stockId).get();
+        String ticker = stock.getTicker();
+        model.addAttribute("title",
+                "Edit number of shares for " + ticker);
+        model.addAttribute("stock", stock);
+        model.addAttribute(MESSAGE_KEY, "info|The" +
+                    " number of shares must be a number between 1 and 1000");
+        model.addAttribute("stockId", stockId);
+        return "stocks/adjust-shares";
+    }
+
+    /**
+     *
+     * @param stockId
+     * @param numberOfShares
+     * @param redirectAttributes
+     * @return
+     */
+    @PostMapping("adjust-shares-portfolio")
+    public String processAdjustSharesInPortfolio(
+            int stockId,
+            int numberOfShares,
+            RedirectAttributes redirectAttributes){
+        Stock stock = stockRepository.findById(stockId).get();
+        stock.getStockDetails().setNumberOfShares(numberOfShares);
+        stockRepository.save(stock);
+        redirectAttributes.addFlashAttribute(SECOND_MESSAGE_KEY, "success|The" +
+                " number of shares has been updated successfully for " + stock.getTicker());
+        return "redirect:/stocks/portfolio";
+    }
+
+    /**
+     * Display details of a stock AFTER adding
+     * it to the portfolio
      * This method returns at URL /stocks/detail
      */
     @GetMapping("add-to-portfolio/{stockId}")
@@ -530,6 +535,12 @@ public class StockController extends AbstractBaseController {
         return "stocks/detail";
     }
 
+    /**
+     * This method retrieves current data from remote IEX API
+     *
+     * @param ticker
+     * @param model
+     */
     void loadAddtionalStockDataFromIexApi(String ticker, Model model) {
         // /stock/{symbol}/company
         String iexStockUrlString = BASE_URL_LIVE_IEX //BASE_URL_SANDBOX_IEX
@@ -565,11 +576,11 @@ public class StockController extends AbstractBaseController {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-
     }
 
     /**
-     * Display details of a stock
+     * Display details of a stock AFTER
+     * removing a stock from portfolio
      * This method returns at URL /stocks/detail
      */
     @GetMapping("remove-from-portfolio/{stockId}")
@@ -595,7 +606,14 @@ public class StockController extends AbstractBaseController {
         return "stocks/detail";
     }
 
-    // add tag to a specific stock : responds to /stocks/add-tag?stockId=13
+    /**
+     * add tag to a stock
+     * responds to /stocks/add-tag?stockId=13
+     *
+     * @param stockId
+     * @param model
+     * @return
+     */
     @GetMapping("add-tag/{stockId}")
     public String displayAddTagForm(
             @PathVariable Integer stockId,
@@ -611,23 +629,30 @@ public class StockController extends AbstractBaseController {
         return "stocks/add-tag";
     }
 
-    // responds to /stocks/add-tag?stockId=13
+    /**
+     * Add tag to a stock
+     * responds to /stocks/add-tag?stockId=13
+     *
+     * @param stockTag
+     * @param errors
+     * @param redirectAttributes
+     * @return
+     */
     @PostMapping("add-tag")
     public String processAddTagForm(
             @ModelAttribute @Valid StockTagDTO stockTag,
             Errors errors,
             RedirectAttributes redirectAttributes) {
         if (!errors.hasErrors()) {
-            //System.out.println("HERE");
             Stock stock = stockTag.getStock();
             Tag tag = stockTag.getTag();
             if (!stock.getTags().contains(tag)) {
                 stock.addTag(tag);
                 stockRepository.save(stock);
-                redirectAttributes.addFlashAttribute(MESSAGE_KEY, "success|New investment field " + tag.getDisplayName() + " added to stock '" +
+                redirectAttributes.addFlashAttribute(SECOND_MESSAGE_KEY, "success|New investment field " + tag.getDisplayName() + " added to stock '" +
                         stock.getTicker() + "'");
             } else {
-                redirectAttributes.addFlashAttribute(MESSAGE_KEY, "info|Investment field " + tag.getDisplayName() + " is already set to stock '" +
+                redirectAttributes.addFlashAttribute(SECOND_MESSAGE_KEY, "info|Investment field " + tag.getDisplayName() + " is already set to stock '" +
                         stock.getTicker() + "'");
             }
             return "redirect:detail/" + stock.getId();
@@ -635,6 +660,98 @@ public class StockController extends AbstractBaseController {
         return "redirect:add-tag/" + stockTag.getStock().getId();
     }
 
+    /**
+     * remove tag from a stock
+     * responds to /stocks/remove-tag?stockId=13
+     *
+     * @param stockId
+     * @param model
+     * @return
+     */
+    @GetMapping("remove-tag/{stockId}")
+    public String displayRemoveTagForm(
+            @PathVariable Integer stockId,
+            Model model) {
+        Optional<Stock> result = stockRepository.findById(stockId);
+        Stock stock = result.get();
+        model.addAttribute("title", "Remove Tag from: " + stock.getTicker());
+        model.addAttribute("tags", stock.getTags());//tagRepository.findAll());
+        model.addAttribute("stockId", stockId);
+//        StockTagDTO stockTagDTO = new StockTagDTO();
+//        stockTagDTO.setStock(stock);
+//        model.addAttribute("stockTag", stockTagDTO);
+        return "stocks/remove-tag";
+    }
+
+    /**
+     * remove tag from a stock
+     * responds to /stocks/remove-tag?stockId=13
+     *
+     * @param redirectAttributes
+     * @return
+     */
+    @PostMapping("remove-tag")
+    public String processRemoveTagForm(
+            int stockId,
+            @RequestParam(required = false) int[] tagIds,
+            RedirectAttributes redirectAttributes) {
+        Optional<Stock> result = stockRepository.findById(stockId);
+        Stock stock = result.get();
+        String messageString = "";
+        if (tagIds != null) {
+            for (int tagId : tagIds) {
+                Tag tag = tagRepository.findById(tagId).get();
+                if (stock.getTags().contains(tag)) {
+                    stock.getTags().remove(tag);
+                    messageString += tag.getDisplayName() + " ";
+                } // else {} No reason why that tag would not be in there.
+            }
+        }
+        messageString = (messageString=="")?"None":messageString;
+        redirectAttributes.addFlashAttribute(SECOND_MESSAGE_KEY, "success|The following investment(s) field(s) " +
+                "got removed from stock " + stock.getTicker() + ": " + messageString);
+        stockRepository.save(stock);
+        return "redirect:detail/" + stock.getId();
+    }
+
+    /*
+    @GetMapping("create")
+    public String displayCreateStockForm(Model model) {
+        model.addAttribute("title", "Create Stock");
+        model.addAttribute(new Stock());
+        model.addAttribute("categories", stockCategoryRepository.findAll());
+        return "stocks/create";
+    }
+
+    @PostMapping("create")
+    public String processCreateStockForm(@ModelAttribute @Valid Stock newStock,
+                                         Errors errors, Model model) {
+        if (errors.hasErrors()) {
+            model.addAttribute("title", "Create Stock");
+            return "stocks/create";
+        }
+
+        stockRepository.save(newStock);
+        return "redirect:";
+    }*/
+
+    /*
+    @GetMapping("delete")
+    public String displayDeleteStockForm(Model model) {
+        model.addAttribute("title", "Delete Stocks");
+        model.addAttribute("stocks", stockRepository.findAll());
+        return "stocks/delete";
+    }
+
+    @PostMapping("delete")
+    public String processDeleteStocksForm(@RequestParam(required = false) int[] stockIds) {
+        if (stockIds != null) {
+            for (int id : stockIds) {
+                stockRepository.deleteById(id);
+            }
+        }
+        return "redirect:";
+    }*/
 
     /**
      * CALL USPTO API to refresh data
@@ -712,7 +829,7 @@ public class StockController extends AbstractBaseController {
         int oldDelta = 0;
         nextStock:
         for (Stock stock : listOfStocks) {
-            k +=1 ;
+            k += 1;
             //System.out.println("Visiting stock " + k);
             //if (stock.getStockDetails().getLatestPrice() != 0.0) continue nextStock;
             //GET IEX Data while using ticker
@@ -724,8 +841,8 @@ public class StockController extends AbstractBaseController {
 //                            + IEX_SANDBOX_PUBLIC_TOKEN_TSK + "&filter=latestTime,latestPrice";
 
             //Real price data
-            iexStockUrlString = BASE_URL_LIVE_IEX+ "/stable/stock/" + stock.getTicker() + "/quote?token="
-                            + IEX_PUBLIC_TOKEN + "&filter=latestTime,latestPrice";
+            iexStockUrlString = BASE_URL_LIVE_IEX + "/stable/stock/" + stock.getTicker() + "/quote?token="
+                    + IEX_PUBLIC_TOKEN + "&filter=latestTime,latestPrice";
 
             RestTemplate iexRestTemplate = new RestTemplate();
 
@@ -752,13 +869,13 @@ public class StockController extends AbstractBaseController {
                                 if (iexJo.get("latestPrice") instanceof Double) {
                                     //System.out.println("This is a Double");
                                     latestPrice = Double.valueOf((Double) iexJo.get("latestPrice"));
-                                } else if(iexJo.get("latestPrice") instanceof String) {
+                                } else if (iexJo.get("latestPrice") instanceof String) {
                                     latestPrice = Double.valueOf((String) iexJo.get("latestPrice"));
                                     //System.out.println("This is a String");
-                                } else if(iexJo.get("latestPrice") instanceof Float) {
+                                } else if (iexJo.get("latestPrice") instanceof Float) {
                                     //System.out.println("This is a Float");
                                     latestPrice = Double.valueOf(((Float) iexJo.get("latestPrice")).floatValue());
-                                } else if(iexJo.get("latestPrice") instanceof Long) {
+                                } else if (iexJo.get("latestPrice") instanceof Long) {
                                     //System.out.println("This is a Long");
                                     latestPrice = Double.valueOf(((Long) iexJo.get("latestPrice")).longValue());
                                 } else {
@@ -776,8 +893,8 @@ public class StockController extends AbstractBaseController {
                                 stockRepository.save(stock);
                                 i++;
 
-                                delta = k-i;
-                                if (oldDelta != delta){
+                                delta = k - i;
+                                if (oldDelta != delta) {
                                     System.out.println("stock with k = " + k + " | i = " + i +
                                             " --> " + stock.getStockDetails().getLatestPrice());
                                     oldDelta = delta;
@@ -788,7 +905,7 @@ public class StockController extends AbstractBaseController {
                                 continue nextStock;
                             } catch (ParseException e) {
                                 e.printStackTrace();
-                            } catch (NumberFormatException numberFormatException){
+                            } catch (NumberFormatException numberFormatException) {
                                 numberFormatException.printStackTrace();
                             }
                         } else {
@@ -859,7 +976,7 @@ public class StockController extends AbstractBaseController {
         return "stocks/IP30";
     }
 
-    void loadIP30PriceAndPatentsFootprint(Model model){
+    void loadIP30PriceAndPatentsFootprint(Model model) {
         int size = 30;
         List<Stock> listOfStocks = (List<Stock>) stockRepository.findAll();
         listOfStocks.sort(Comparators.patentsPortfolioComparator.reversed());
@@ -867,11 +984,11 @@ public class StockController extends AbstractBaseController {
         IP30List.addAll(listOfStocks.subList(0, size));
         long aggregatedPatents = 0L;
         double numerator = 0.0;
-        for (Stock stock : IP30List){
+        for (Stock stock : IP30List) {
             aggregatedPatents += stock.getStockDetails().getTotalNumberOfPatents();
-            numerator += stock.getStockDetails().getTotalNumberOfPatents()*stock.getStockDetails().getLatestPrice();
+            numerator += stock.getStockDetails().getTotalNumberOfPatents() * stock.getStockDetails().getLatestPrice();
         }
-        double weightedPrice = numerator/aggregatedPatents;
+        double weightedPrice = numerator / aggregatedPatents;
         model.addAttribute("aggregatedPatents", aggregatedPatents);
         model.addAttribute("weightedPrice", weightedPrice);
     }

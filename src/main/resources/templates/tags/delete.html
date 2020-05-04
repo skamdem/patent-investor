@@ -2,7 +2,8 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org/">
 <head th:replace="fragments :: head"></head>
 <body class="container">
-<header th:replace="fragments :: header"></header>
+<div th:replace="fragments :: header"></div>
+<div th:replace="fragments :: messages"></div>
 
 <form method="POST">
     <!-- th:block th:each="tag : ${tags}">

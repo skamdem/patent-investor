@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -86,7 +87,15 @@ public class TagController extends AbstractBaseController {
     @GetMapping("delete")
     public String displayDeleteTagForm(Model model) {
         model.addAttribute("title", "Delete investment field");
-        model.addAttribute("tags", tagRepository.findAll());
+        List<Tag> tags = new ArrayList<>();
+        Iterable<Tag> allTags = tagRepository.findAll();
+        for (Tag tag : allTags) {
+            if (tag.getStocks().size() == 0){
+                tags.add(tag);
+            }
+        }
+        model.addAttribute("tags", tags);
+        model.addAttribute(MESSAGE_KEY, "info|Only investment fields currently not set to any stock are listed. You may not delete any investment field currently tied to some stock");
         return "tags/delete";
     }
 

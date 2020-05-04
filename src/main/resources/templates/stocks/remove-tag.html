@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org/">
+<head th:replace="fragments :: head"></head>
+<body class="container">
+<div th:replace="fragments :: header"></div>
+<div th:replace="fragments :: messages"></div>
+
+<div class="container body-content">
+    <form method="post" action="/stocks/remove-tag">
+
+        <!-- div class="form-group">
+            <input type="hidden" th:field="${stockTag.stock}">
+            <select th:field="${stockTag.tag}">
+                <option th:each="tag : ${tags}"
+                        th:value="${tag.id}"
+                        th:text="${tag.name}"
+                ></option>
+            </select>
+        </div -->
+        <table class="table table-striped">
+            <tr th:each="tag : ${tags}">
+                <td>
+                    <span th:text="'#'+${tag.name}"></span>
+                </td>
+                <td>
+                    <input type="checkbox" name="tagIds" th:value="${tag.id}" class="form-control">
+                </td>
+            </tr>
+        </table>
+        <div class="form-group">
+            <input type="hidden" th:value="${stockId}" name="stockId" />
+            <input type="submit" value="Remove Tag(s)" class="btn btn-danger">
+        </div>
+
+    </form>
+</div>
+<div th:insert="fragments :: footer"></div>
+</body>
+</html>

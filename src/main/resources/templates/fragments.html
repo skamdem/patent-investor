@@ -87,6 +87,14 @@
         <button type="button" class="close" data-dismiss="alert">&times;</button>
         <div th:text="${parts[1]}"></div>
     </div>
+
+    <div th:if="${secondMessage != null}"
+         th:with="parts=${#strings.arraySplit(secondMessage, '|')}"
+         th:attr="class=${'alert alert-dismissible alert-' + parts[0]}"
+         role="alert">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <div th:text="${parts[1]}"></div>
+    </div>
 </div>
 
 <!--String iconsDestinationUrl = "/stocks/results/?sortIcon=";
@@ -218,6 +226,8 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
     <script>
         feather.replace({height: '20', width: '15', class: 'foo bar', 'stroke-width': 4 })
 
+
+
     </script>
 </th:block>
 
@@ -235,11 +245,15 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
         <!-- Begin optional section for portfolio page-->
         <th:block th:if="${netWorth != null}">
             <td>
-                <span th:text="${stock.stockDetails.getNumberOfShares()}"></span>
+                <a th:alt-title="'Adjust number of shares  of ' + ${{stock.ticker}}"
+                   th:href="@{${'/stocks/adjust-shares-portfolio/'+stock.id}}">
+                    <span th:text="${stock.stockDetails.getNumberOfShares()}">
+                    </span>
+                </a>
             </td>
             <td>
                 <span th:if="${netWorth != 0.0}"
-                      th:text="${(stock.stockDetails.getNumberOfShares()*stock.stockDetails.latestPrice) / netWorth} + '%'"></span>
+                      th:text="${#numbers.formatDecimal((stock.stockDetails.getNumberOfShares()*stock.stockDetails.latestPrice)*100 / netWorth, 2, 'COMMA', 2, 'POINT')} + ' %'"></span>
                 <span th:if="${netWorth == 0.0}"
                       th:alt-title="'Nothing bought in your portfolio'">n\a</span>
             </td>
