@@ -9,12 +9,16 @@
 
     <!-- link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" -->
     <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/4.4.1-1/css/bootstrap.min.css}"/>
-
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
     <link rel="stylesheet" th:href="@{/styles.css}"/>
 
+    <!-- script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script -->
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
-    <script type="text/javascript" th:src="@{/pagination.js}"></script>
+    <!--script type="text/javascript" th:src="@{/pagination.js}"></script-->
+    <script type="text/javascript" th:src="@{/script.js}"></script>
     <link rel="stylesheet" th:href="@{/pagination.css}"/>
 </head>
 
@@ -103,129 +107,211 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
 <th:block th:fragment="headerStocksRow">
     <tr>
         <th>
-            <span th:style="'color:' + @{(${sortIcon} and (${sortIcon} == 'tickerUp' or ${sortIcon} == 'tickerDown')? ${selectedColor} : ${baseColor})}">
-                Ticker
-            </span>
-            <a alt="up" title="sort ascending"
-               th:href="@{${iconsDestinationUrl} + 'tickerUp'}"
-               th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'tickerUp' ? ${selectedColor} : ${baseColor})}"
-            >
-                <i data-feather="arrow-up"></i>
-            </a>
-            <a alt="down" title="sort descending"
-               th:href="@{${iconsDestinationUrl} + 'tickerDown'}"
-               th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'tickerDown' ? ${selectedColor} : ${baseColor})}"
-            >
-                <i data-feather="arrow-down"></i>
-            </a>
+            <div class="flex-sort-group">
+                <div>
+                    <span th:style="'color:' + @{(${sortIcon} and (${sortIcon} == 'tickerUp' or ${sortIcon} == 'tickerDown')? ${selectedColor} : ${baseColor})}">
+                        Ticker
+                    </span>
+                </div>
+                <div class="flex-arrow-pairs">
+                    <div class="arrow-up">
+                        <a alt="up" title="sort ascending"
+                           th:href="@{${iconsDestinationUrl} + 'tickerUp'}"
+                           th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'tickerUp' ? ${selectedColor} : ${baseColor})}"
+                        >
+                            <i data-feather="arrow-up"></i>
+                        </a>
+                    </div>
+                    <div class="arrow-down">
+                        <a alt="down" title="sort descending"
+                           th:href="@{${iconsDestinationUrl} + 'tickerDown'}"
+                           th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'tickerDown' ? ${selectedColor} : ${baseColor})}"
+                        >
+                            <i data-feather="arrow-down"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
             (
-            <span th:style="'color:' + @{(${sortIcon} and (${sortIcon} == 'corpUp' or ${sortIcon} == 'corpDown')? ${selectedColor} : ${baseColor})}">
-                Corporation name
-            </span>
-            <a alt="up" title="sort ascending"
-               th:href="@{${iconsDestinationUrl} + 'corpUp'}"
-               th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'corpUp' ? ${selectedColor} : ${baseColor})}"
-            >
-                <i data-feather="arrow-up"></i>
-            </a>
-            <a alt="down" title="sort descending"
-               th:href="@{${iconsDestinationUrl} + 'corpDown'}"
-               th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'corpDown' ? ${selectedColor} : ${baseColor})}"
-            >
-                <i data-feather="arrow-down"></i>
-            </a>
+            <div class="flex-sort-group">
+                <div>
+                    <span th:style="'color:' + @{(${sortIcon} and (${sortIcon} == 'corpUp' or ${sortIcon} == 'corpDown')? ${selectedColor} : ${baseColor})}">
+                        Corporation name
+                    </span>
+                </div>
+                <div class="flex-arrow-pairs">
+                    <div class="arrow-up">
+                        <a alt="up" title="sort ascending"
+                           th:href="@{${iconsDestinationUrl} + 'corpUp'}"
+                           th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'corpUp' ? ${selectedColor} : ${baseColor})}"
+                        >
+                            <i data-feather="arrow-up"></i>
+                        </a>
+                    </div>
+                    <div class="arrow-down">
+                        <a alt="down" title="sort descending"
+                           th:href="@{${iconsDestinationUrl} + 'corpDown'}"
+                           th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'corpDown' ? ${selectedColor} : ${baseColor})}"
+                        >
+                            <i data-feather="arrow-down"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
             )
         </th>
 
         <!-- Begin optional section for portfolio page-->
         <th:block th:if="${netWorth != null}">
             <th>
-            <span th:style="'color:' + @{(${sortIcon} and (${sortIcon} == 'sharesUp' or ${sortIcon} == 'sharesDown')? ${selectedColor} : ${baseColor})}">
-                # of shares
-            </span>
-                <a alt="up" title="sort ascending"
-                   th:href="@{${iconsDestinationUrl} + 'sharesUp'}"
-                   th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'sharesUp' ? ${selectedColor} : ${baseColor})}"
-                >
-                    <i data-feather="arrow-up"></i>
-                </a>
-                <a alt="down" title="sort descending"
-                   th:href="@{${iconsDestinationUrl} + 'sharesDown'}"
-                   th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'sharesDown' ? ${selectedColor} : ${baseColor})}"
-                >
-                    <i data-feather="arrow-down"></i>
-                </a>
+                <div class="flex-sort-group">
+                    <div>
+                        <span th:style="'color:' + @{(${sortIcon} and (${sortIcon} == 'sharesUp' or ${sortIcon} == 'sharesDown')? ${selectedColor} : ${baseColor})}">
+                            # of shares
+                        </span>
+                    </div>
+                    <div class="flex-arrow-pairs">
+                        <div class="arrow-up">
+                            <a alt="up" title="sort ascending"
+                               th:href="@{${iconsDestinationUrl} + 'sharesUp'}"
+                               th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'sharesUp' ? ${selectedColor} : ${baseColor})}"
+                            >
+                                <i data-feather="arrow-up"></i>
+                            </a>
+                        </div>
+                        <div class="arrow-down">
+                            <a alt="down" title="sort descending"
+                               th:href="@{${iconsDestinationUrl} + 'sharesDown'}"
+                               th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'sharesDown' ? ${selectedColor} : ${baseColor})}"
+                            >
+                                <i data-feather="arrow-down"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </th>
             <th>
-                <span th:style="'color:' + @{(${sortIcon} and (${sortIcon} == 'percentInPortfolioUp' or ${sortIcon} == 'percentInPortfolioDown')? ${selectedColor} : ${baseColor})}">
-                    % in portfolio
-                </span>
-                <a alt="up" title="sort ascending"
-                   th:href="@{${iconsDestinationUrl} + 'percentInPortfolioUp'}"
-                   th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'percentInPortfolioUp' ? ${selectedColor} : ${baseColor})}"
-                >
-                    <i data-feather="arrow-up"></i>
-                </a>
-                <a alt="down" title="sort descending"
-                   th:href="@{${iconsDestinationUrl} + 'percentInPortfolioDown'}"
-                   th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'percentInPortfolioDown' ? ${selectedColor} : ${baseColor})}"
-                >
-                    <i data-feather="arrow-down"></i>
-                </a>
+                <div class="flex-sort-group">
+                    <div>
+                        <span th:style="'color:' + @{(${sortIcon} and (${sortIcon} == 'percentInPortfolioUp' or ${sortIcon} == 'percentInPortfolioDown')? ${selectedColor} : ${baseColor})}">
+                            % in portfolio
+                        </span>
+                    </div>
+                    <div class="flex-arrow-pairs">
+                        <div class="arrow-up">
+                            <a alt="up" title="sort ascending"
+                               th:href="@{${iconsDestinationUrl} + 'percentInPortfolioUp'}"
+                               th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'percentInPortfolioUp' ? ${selectedColor} : ${baseColor})}"
+                            >
+                                <i data-feather="arrow-up"></i>
+                            </a>
+                        </div>
+                        <div class="arrow-down">
+                            <a alt="down" title="sort descending"
+                               th:href="@{${iconsDestinationUrl} + 'percentInPortfolioDown'}"
+                               th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'percentInPortfolioDown' ? ${selectedColor} : ${baseColor})}"
+                            >
+                                <i data-feather="arrow-down"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </th>
         </th:block>
         <!-- End optional section for portfolio page-->
 
         <th>
-            <span th:style="'color:' + @{(${sortIcon} and (${sortIcon} == 'priceUp' or ${sortIcon} == 'priceDown')? ${selectedColor} : ${baseColor})}">
-                Last Price
-            </span>
-            <a alt="up" title="sort ascending"
-               th:href="@{${iconsDestinationUrl} + 'priceUp'}"
-               th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'priceUp' ? ${selectedColor} : ${baseColor})}"
-            >
-                <i data-feather="arrow-up"></i>
-            </a>
-            <a alt="down" title="sort descending"
-               th:href="@{${iconsDestinationUrl} + 'priceDown'}"
-               th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'priceDown' ? ${selectedColor} : ${baseColor})}"
-            >
-                <i data-feather="arrow-down"></i>
-            </a>
+            <div class="flex-sort-group">
+                <div>
+                    <span th:style="'color:' + @{(${sortIcon} and (${sortIcon} == 'priceUp' or ${sortIcon} == 'priceDown')? ${selectedColor} : ${baseColor})}">
+                        Last Price
+                    </span>
+                </div>
+                <div class="flex-arrow-pairs">
+                    <div class="arrow-up">
+                        <a alt="up" title="sort ascending"
+                           th:href="@{${iconsDestinationUrl} + 'priceUp'}"
+                           th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'priceUp' ? ${selectedColor} : ${baseColor})}"
+                        >
+                            <i data-feather="arrow-up"></i>
+                        </a>
+                    </div>
+                    <div class="arrow-down">
+                        <a alt="down" title="sort descending"
+                           th:href="@{${iconsDestinationUrl} + 'priceDown'}"
+                           th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'priceDown' ? ${selectedColor} : ${baseColor})}"
+                        >
+                            <i data-feather="arrow-down"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
         </th>
         <th>
-            <span th:style="'color:' + @{(${sortIcon} and (${sortIcon} == 'patentsUp' or ${sortIcon} == 'patentsDown')? ${selectedColor} : ${baseColor})}">
-                Patents Footprint
-            </span>
-            <a alt="up" title="sort ascending"
-               th:href="@{${iconsDestinationUrl} + 'patentsUp'}"
-               th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'patentsUp' ? ${selectedColor} : ${baseColor})}"
-            >
-                <i data-feather="arrow-up"></i>
-            </a>
-            <a alt="down" title="sort descending"
-               th:href="@{${iconsDestinationUrl} + 'patentsDown'}"
-               th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'patentsDown' ? ${selectedColor} : ${baseColor})}"
-            >
-                <i data-feather="arrow-down"></i>
-            </a>
+            <div class="flex-sort-group">
+                <div>
+                    <span th:style="'color:' + @{(${sortIcon} and (${sortIcon} == 'patentsUp' or ${sortIcon} == 'patentsDown')? ${selectedColor} : ${baseColor})}">
+                        Patents Footprint
+                    </span>
+                </div>
+                <div class="flex-arrow-pairs">
+                    <div class="arrow-up">
+                        <a alt="up" title="sort ascending"
+                           th:href="@{${iconsDestinationUrl} + 'patentsUp'}"
+                           th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'patentsUp' ? ${selectedColor} : ${baseColor})}"
+                        >
+                            <i data-feather="arrow-up"></i>
+                        </a>
+                    </div>
+                    <div class="arrow-down">
+                        <a alt="down" title="sort descending"
+                           th:href="@{${iconsDestinationUrl} + 'patentsDown'}"
+                           th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'patentsDown' ? ${selectedColor} : ${baseColor})}"
+                        >
+                            <i data-feather="arrow-down"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
         </th>
         <!-- Begin optional section for portfolio page-->
         <th:block th:if="${netWorth != null}">
             <th>
-                <span>List of tags</span>
+                <div class="flex-sort-group">
+                    <div>
+                        <span>List of tags</span>
+                    </div>
+                    <div class="flex-arrow-pairs hide">
+                        <div class="arrow-up">
+                            <i data-feather="arrow-up"></i>
+                        </div>
+                        <div class="arrow-down">
+                            <i data-feather="arrow-down"></i>
+                        </div>
+                    </div>
+                </div>
             </th>
         </th:block>
         <!-- End optional section for portfolio page-->
         <th>
-            <span th:unless="${netWorth != null}">Track</span>
-            <span th:if="${netWorth != null}">Divest</span> stock
+            <div class="flex-sort-group">
+                <div>
+                    <span th:unless="${netWorth != null}" th:text="'Track '"></span>
+                    <span th:if="${netWorth != null}" th:text="'Divest '"></span> stock
+                </div>
+                <div class="flex-arrow-pairs hide">
+                    <div class="arrow-up">
+                        <i data-feather="arrow-up"></i>
+                    </div>
+                    <div class="arrow-down">
+                        <i data-feather="arrow-down"></i>
+                    </div>
+                </div>
+            </div>
         </th>
-
     </tr>
     <script>
-        feather.replace({height: '20', width: '15', class: 'foo bar', 'stroke-width': 4 })
-
+        feather.replace({height: '20', width: '15', class: 'foo bar', 'stroke-width': 5 })
 
 
     </script>

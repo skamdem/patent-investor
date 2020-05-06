@@ -10,6 +10,7 @@ import org.launchcode.patentinvestor.models.dto.StockTagDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.backoff.BackOffExecution;
@@ -45,6 +46,11 @@ public class StockController extends AbstractBaseController {
     static String ordinarySortCriteria = "";
     static String inPortfolioSortCriteria = "";
     static String searchDestinationUrl = "/stocks/searchResults";
+
+    //Helps view download progress
+    int numberOfUsptoItemsDownloaded = 0;
+    int numberOfIexItemsDownloaded = 0;
+    int globalSize = 1;// initialize to 1 in order to prevent division by zero
 
     static HashMap<String, String> columnChoices = new HashMap<>();
     static HashMap<String, String> stockExchanges = new HashMap<>();
@@ -383,7 +389,6 @@ public class StockController extends AbstractBaseController {
             @RequestParam("page") Optional<Integer> page,
             @RequestParam("size") Optional<Integer> size,
             @RequestParam("sortIcon") Optional<String> sortIcon) {
-
         int currentPage = page.orElse(1);
         int pageSize = size.orElse(numberOfItemsPerPage);
         inPortfolioSortCriteria = sortIcon.orElse(inPortfolioSortCriteria);
@@ -469,7 +474,6 @@ public class StockController extends AbstractBaseController {
     }
 
     /**
-     *
      * @param model
      * @param stockId
      * @return
@@ -477,20 +481,19 @@ public class StockController extends AbstractBaseController {
     @GetMapping("adjust-shares-portfolio/{stockId}")
     public String displayAdjustSharesInPortfolio(
             Model model,
-            @PathVariable int stockId){
+            @PathVariable int stockId) {
         Stock stock = stockRepository.findById(stockId).get();
         String ticker = stock.getTicker();
         model.addAttribute("title",
                 "Edit number of shares for " + ticker);
         model.addAttribute("stock", stock);
         model.addAttribute(MESSAGE_KEY, "info|The" +
-                    " number of shares must be a number between 1 and 1000");
+                " number of shares must be a number between 1 and 1000");
         model.addAttribute("stockId", stockId);
         return "stocks/adjust-shares";
     }
 
     /**
-     *
      * @param stockId
      * @param numberOfShares
      * @param redirectAttributes
@@ -500,7 +503,7 @@ public class StockController extends AbstractBaseController {
     public String processAdjustSharesInPortfolio(
             int stockId,
             int numberOfShares,
-            RedirectAttributes redirectAttributes){
+            RedirectAttributes redirectAttributes) {
         Stock stock = stockRepository.findById(stockId).get();
         stock.getStockDetails().setNumberOfShares(numberOfShares);
         stockRepository.save(stock);
@@ -707,58 +710,19 @@ public class StockController extends AbstractBaseController {
                 } // else {} No reason why that tag would not be in there.
             }
         }
-        messageString = (messageString=="")?"None":messageString;
+        messageString = (messageString == "") ? "None" : messageString;
         redirectAttributes.addFlashAttribute(SECOND_MESSAGE_KEY, "success|The following investment(s) field(s) " +
                 "got removed from stock " + stock.getTicker() + ": " + messageString);
         stockRepository.save(stock);
         return "redirect:detail/" + stock.getId();
     }
 
-    /*
-    @GetMapping("create")
-    public String displayCreateStockForm(Model model) {
-        model.addAttribute("title", "Create Stock");
-        model.addAttribute(new Stock());
-        model.addAttribute("categories", stockCategoryRepository.findAll());
-        return "stocks/create";
-    }
-
-    @PostMapping("create")
-    public String processCreateStockForm(@ModelAttribute @Valid Stock newStock,
-                                         Errors errors, Model model) {
-        if (errors.hasErrors()) {
-            model.addAttribute("title", "Create Stock");
-            return "stocks/create";
-        }
-
-        stockRepository.save(newStock);
-        return "redirect:";
-    }*/
-
-    /*
-    @GetMapping("delete")
-    public String displayDeleteStockForm(Model model) {
-        model.addAttribute("title", "Delete Stocks");
-        model.addAttribute("stocks", stockRepository.findAll());
-        return "stocks/delete";
-    }
-
-    @PostMapping("delete")
-    public String processDeleteStocksForm(@RequestParam(required = false) int[] stockIds) {
-        if (stockIds != null) {
-            for (int id : stockIds) {
-                stockRepository.deleteById(id);
-            }
-        }
-        return "redirect:";
-    }*/
-
     /**
      * CALL USPTO API to refresh data
      */
     void loadUsptoAPI() {
         List<Stock> listOfStocks = (List<Stock>) stockRepository.findAll();
-
+        globalSize = listOfStocks.size();
         //Preparatory settings For USPTO API call
         final String o = "{\"page\":0,\"per_page\":1}";
 
@@ -768,7 +732,7 @@ public class StockController extends AbstractBaseController {
         String usptoApiQueryResult = "";
         String stock_q = ""; // contains the usptoApi key
 
-        int i = 0; //for display of API update progress
+        numberOfUsptoItemsDownloaded = 0; //for display of API update progress
         for (Stock stock : listOfStocks) {
             //GET USPTO Data while using usptoId
             usptoStockUrlString = BASE_URL_USPTO + "api/patents/query?q={stock_q}&f=[\"assignee_type\"]&o={o}";
@@ -793,16 +757,48 @@ public class StockController extends AbstractBaseController {
 
             //Save obtained data to update local repositories
             stockRepository.save(stock);
-//            System.out.println("stock " + i++ + " --> " + stock.getStockDetails().getTotalNumberOfPatents());
+            numberOfUsptoItemsDownloaded++;
+
+ //           System.out.println("stock " + numberOfUsptoItemsDownloaded + " --> " + stock.getStockDetails().getTotalNumberOfPatents());
         }
-        System.out.println("Completed USPTO API calls");
+//        System.out.println("Completed USPTO API calls");
+    }
+
+    class CurrentPercentageDownloaded {
+        private long percentValue;
+
+        public CurrentPercentageDownloaded(long percentValue) {
+            this.percentValue = percentValue;
+        }
+
+        public long getPercentValue() {
+            return percentValue;
+        }
+
+        public void setPercentValue(long percentValue) {
+            this.percentValue = percentValue;
+        }
+    }
+
+    /**
+     * Resource that produces an application/json representation of a
+     * progress bar percentage value to refresh progress bar for client side
+     *
+     * @return a JSON {@link CurrentPercentageDownloaded} object
+     */
+    @ResponseBody
+    @GetMapping(path = "progress-bar-value", produces = MediaType.APPLICATION_JSON_VALUE)
+    public CurrentPercentageDownloaded getProgressBarPercentageValue() {
+//        System.out.println("PERCENTAGE1 = " + numberOfUsptoItemsDownloaded);
+//        System.out.println("globalSize = " + globalSize);
+//        System.out.println("PERCENTAGE2 = " + Math.round((double)numberOfUsptoItemsDownloaded*100 / (double)globalSize));
+        return new CurrentPercentageDownloaded(Math.round((double)(numberOfUsptoItemsDownloaded + numberOfIexItemsDownloaded)*100 / (double)(globalSize*2)));
     }
 
     /**
      * CALL IEX API to refresh data
      */
     void loadIexApi() {
-        List<Stock> listOfStocks = (List<Stock>) stockRepository.findAll();
         //Preparatory settings For IEX API call
         String iexStockUrlString;
         String iexApiQueryResult = "";
@@ -812,9 +808,6 @@ public class StockController extends AbstractBaseController {
         //BASE_URL_SANDBOX_IEX_SSE
         //IEX_SANDBOX_PUBLIC_TOKEN_TSK
         //IEX_SANDBOX_SECRET_TOKEN
-
-//        String result = restTemplate.getForObject(uri, String.class);
-//        ExponentialBackOff backOff = new ExponentialBackOff(100, 1.5);
 //        backOff.setMaxInterval(5 * 1000L);
 //        backOff.setMaxElapsedTime(50 * 1000L);
 
@@ -827,6 +820,11 @@ public class StockController extends AbstractBaseController {
         int t = 0;
         int delta = 0;
         int oldDelta = 0;
+
+        List<Stock> listOfStocks = (List<Stock>) stockRepository.findAll();
+
+        numberOfIexItemsDownloaded = 0;
+
         nextStock:
         for (Stock stock : listOfStocks) {
             k += 1;
@@ -836,13 +834,13 @@ public class StockController extends AbstractBaseController {
             //https://sandbox.iexapis.com/stable/stock/twtr/quote?token=Tsk_acfbaf3e2b4444378ac1b46b2570b2da&filter=latestTime,latestPrice
 
             //Fake price data
-//            iexStockUrlString =BASE_URL_SANDBOX_IEX
-//                            + "/stable/stock/" + stock.getTicker() + "/quote?token="
-//                            + IEX_SANDBOX_PUBLIC_TOKEN_TSK + "&filter=latestTime,latestPrice";
+            iexStockUrlString = BASE_URL_SANDBOX_IEX
+                            + "/stable/stock/" + stock.getTicker() + "/quote?token="
+                            + IEX_SANDBOX_PUBLIC_TOKEN_TSK + "&filter=latestTime,latestPrice";
 
             //Real price data
-            iexStockUrlString = BASE_URL_LIVE_IEX + "/stable/stock/" + stock.getTicker() + "/quote?token="
-                    + IEX_PUBLIC_TOKEN + "&filter=latestTime,latestPrice";
+//            iexStockUrlString = BASE_URL_LIVE_IEX + "/stable/stock/" + stock.getTicker() + "/quote?token="
+//                    + IEX_PUBLIC_TOKEN + "&filter=latestTime,latestPrice";
 
             RestTemplate iexRestTemplate = new RestTemplate();
 
@@ -891,6 +889,7 @@ public class StockController extends AbstractBaseController {
                                 stock.getStockDetails().setLatestPrice(latestPrice);
                                 //Save obtained data to update local repositories
                                 stockRepository.save(stock);
+                                numberOfIexItemsDownloaded++;
                                 i++;
 
                                 delta = k - i;
@@ -955,10 +954,13 @@ public class StockController extends AbstractBaseController {
      * This method returns at URL /stocks/portfolio
      */
     @GetMapping("callAPIs")
-    public String displayStocksAfterCallingAPIs() {
+    public String displayStocksAfterCallingAPIs(
+            RedirectAttributes redirectAttributes) {
         loadUsptoAPI();
         loadIexApi();
-        System.out.println("Completed API calls");
+        redirectAttributes.addFlashAttribute(SECOND_MESSAGE_KEY, "success|Completed API calls. You now have the latest market stock data.");
+        //System.out.println("Completed API calls");
+        //return "/stocks/refreshing";
         return "redirect:/stocks";
     }
 
@@ -969,7 +971,7 @@ public class StockController extends AbstractBaseController {
         listOfStocks.sort(Comparators.patentsPortfolioComparator.reversed());
         List<Stock> IP30List = new ArrayList<>(size);
         IP30List.addAll(listOfStocks.subList(0, size));
-        model.addAttribute("title", "IP 30");
+        model.addAttribute("title", "IP30");
         model.addAttribute("IP30List", IP30List);
         loadIP30PriceAndPatentsFootprint(model);
         model.addAttribute("exchangePlatforms", stockExchanges);

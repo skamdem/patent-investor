@@ -13,46 +13,52 @@
     No stocks were found!
 </h2>
 
-<div th:if="${stockPage != null} and ${stockPage.content.size() > 0}"
-     class="row">
+<div th:if="${stockPage != null} and ${stockPage.content.size() > 0}" class="row">
     <div class="col-sm-12 col-md-4 merge-with-background">
-        <div class="card mb-4 merge-with-background">
+        <!-- div class="card mb-4 merge-with-background">
             <div class="card-body text-left merge-with-background">
                 <a th:href="@{${'/stocks/callAPIs'}}"
                    th:alt-title="'Query API to refresh stocks data'"
-                   class="btn btn-info mb-3"
-                   id="refresh-button"
-                >
+                   class="btn btn-info mb-3">
                     Refresh stock data
                 </a>
             </div>
-        </div>
+        </div -->
     </div>
-    <div class="col-sm-12 col-md-8 merge-with-background">
-        <div id="progressionBar"
-             class="progress"
-             th:style="'border:1px solid blue; visibility : hidden; width:80%'">
-            <div id="dynamic"
-                 class="progress-bar progress-bar-success progress-bar-striped progress-bar-animated"
-                 role="progressbar"
-                 style="width: 0%"
-                 aria-valuenow="0"
-                 aria-valuemin="0"
-                 aria-valuemax="100"
-            >
-                <!--span id="current-progress"></span-->
-            </div>
-        </div>
-        <div id="progressionText" style="visibility : hidden; margin-top: 10px;">
-            <p>
-                Currently running API calls to refill the entire database with the latest stock data.
-                <br>Do not navigate away from this page.
-                <br>Approximately <strong><span id="timeLeft">10 minutes</span></strong> left. Please wait...
-            </p>
-        </div>
-    </div>
-</div>
+<div class="progress" th:style="'border:1px solid blue; width:50%'">
 
+    <div id="dynamic" class="progress-bar progress-bar-success progress-bar-striped progress-bar-animated"
+         role="progressbar"
+         style="width: 0%"
+         aria-valuenow="0"
+         aria-valuemin="0"
+         aria-valuemax="100"
+    >
+        <span id="current-progress"></span>
+    </div>
+
+    <script th:inline="javascript">
+            $(function() {
+              var current_progress = [[${current_progress}]];
+                var interval = setInterval(function() {
+                    current_progress += 10;
+                    $("#dynamic")
+                    .css("width", current_progress + "%")
+                    .attr("aria-valuenow", current_progress)
+                    .text(current_progress + "% Complete");
+                    if (current_progress >= 100)
+                        clearInterval(interval);
+                    }, 1000);
+            });
+        </script>
+    <!--
+         **th:aria-valuenow="${model}"**
+    -->
+
+
+</div>
+</div>
+<br><br>
 <div class="row">
     <div class="col">
         <div class="table-responsive xl">

@@ -21,7 +21,8 @@
         <div class="card merge-with-background">
             <div class="card-body text-right merge-with-background">
                 <h4 class="card-text">
-                    <span th:style="'color:green'" th:text="${#numbers.formatDecimal(aggregatedPatents, 0, 'COMMA', 0, 'POINT')}">0</span>
+                    <span th:style="'color:green'"
+                          th:text="${#numbers.formatDecimal(aggregatedPatents, 0, 'COMMA', 0, 'POINT')}">0</span>
                     aggregated patents registered
                 </h4>
             </div>
@@ -35,25 +36,28 @@
 </div>
 <div class="row">
     <div class="col">
-        <table class="table table-borderless table-striped table-dark">
-            <thead class="thead-dark">
-            <th:block th:replace="fragments :: headerStocksRow"></th:block>
-            <!-- tr>
-                <th>Ticker</th>
+        <div class="table-responsive xl">
+            <table class="table table-borderless table-hover table-striped table-dark">
+                <caption>List of stocks</caption>
+                <thead class="thead-dark">
+                <th:block th:replace="fragments :: headerStocksRow"></th:block>
+                <!-- tr>
+                    <th>Ticker</th>
 
-                <th># of shares</th>    [My portfolio]
-                <th>% on portfolio</th> [My portfolio]
+                    <th># of shares</th>    [My portfolio]
+                    <th>% on portfolio</th> [My portfolio]
 
-                <th>Last Price</th>
-                <th>Patents Portfolio</th>
+                    <th>Last Price</th>
+                    <th>Patents Portfolio</th>
 
-                <th>Track stock</th>     [Divest stock]
-            </tr -->
-            </thead>
-            <tbody>
-            <th:block th:replace="fragments :: listingResults"></th:block>
-            </tbody>
-        </table>
+                    <th>Track stock</th>     [Divest stock]
+                </tr -->
+                </thead>
+                <tbody>
+                <th:block th:replace="fragments :: listingResults"></th:block>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
