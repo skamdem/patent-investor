@@ -7,61 +7,101 @@
 
 <div class="row">
     <div class="col">
-        <a th:href="@{/tags/create}" class="btn btn-success mb-3">
+        <a th:href="@{/tags/create}"
+           class="btn btn-success mb-3">
             Create new field
         </a>
     </div>
 
-    <div class="col">
-        <a th:href="@{/tags/delete}" class="btn btn-danger mb-3">
+    <!--stockPage is meant to mean tagPage throughout this file-->
+    <div class="col" th:if="${stockPage != null} and ${stockPage.content.size() > 0}">
+        <a th:href="@{/tags/delete}"
+           class="btn btn-danger mb-3">
             Delete existing field
         </a>
     </div>
 </div>
 
-<table class="table table-striped">
-    <thead>
-    <tr>
-        <th>Investment field</th>
-        <th>Description</th>
-        <th>Edition</th>
-    </tr>
-    </thead>
-    <tr th:each="tag, iStat : ${tagPage.content}">
-        <td>
-            <a th:text="'#'+${tag.name}"
-               th:href="'/tags/view/'+${tag.id}">
-            </a>
-        </td>
-        <td>
-            <!-- th:href="@{/events/(categoryId=${category.id})}" -->
-            <a th:text="${tag.description}">
-            </a>
-        </td>
-        <td>
-            <a th:text="'Edit #'+${tag.name}"
-               th:alt-title="'Edit #' + ${tag.name}"
-               th:href="@{/tags/edit/}+${tag.id}">
-            </a>
-        </td>
-    </tr>
-</table>
-<div th:if="${tagPage.totalPages >= 1}" id="paginationDiv">
-    <ul>
-        <li th:each="pageNumber : ${pageNumbers}"
-            th:class="${pageNumber} == ${tagPage.number + 1} ? active">
-            <th:block th:unless="${pageNumber} == '...'">
-                <a th:href="@{/tags(size=${tagPage.size}, page=${pageNumber})}"
-               th:text="${pageNumber}"
-               th:alt-title="'Page ' + ${pageNumber}">
-            </a>
-            </th:block>
-            <th:block th:if="${pageNumber} == '...'">
-                <a th:text="${pageNumber}"></a>
-            </th:block>
-        </li>
-    </ul>
+<!--START there are actual tags to be displayed-->
+<div th:if="${stockPage != null} and ${stockPage.content.size() > 0}">
+
+    <!--START display table-->
+    <table class="table table-borderless table-hover table-striped table-dark">
+        <caption>List of investment fields</caption>
+        <thead>
+        <tr>
+            <th>
+                <div class="flex-sort-group">
+                    <div>
+                    <span th:style="'color:' + @{(${sortIcon} and (${sortIcon} == 'investmentFieldUp' or ${sortIcon} == 'investmentFieldDown')? ${selectedColor} : ${baseColor})}">
+                        Investment field
+                    </span>
+                    </div>
+                    <div class="flex-arrow-pairs">
+                        <div class="arrow-up">
+                            <a alt="up"
+                               title="sort ascending"
+                               th:href="@{${iconsDestinationUrl} + 'investmentFieldUp'}"
+                               th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'investmentFieldUp' ? ${selectedColor} : ${baseColor})}"
+                            >
+                                <i data-feather="arrow-up"></i>
+                            </a>
+                        </div>
+                        <div class="arrow-down">
+                            <a alt="down"
+                               title="sort descending"
+                               th:href="@{${iconsDestinationUrl} + 'investmentFieldDown'}"
+                               th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'investmentFieldDown' ? ${selectedColor} : ${baseColor})}"
+                            >
+                                <i data-feather="arrow-down"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </th>
+            <th>Description</th>
+            <th>Edition</th>
+        </tr>
+
+        <script>
+        feather.replace({height: '20', width: '15', class: 'foo bar', 'stroke-width': 5 })
+
+        </script>
+
+        </thead>
+        <tr th:each="tag, iStat : ${stockPage.content}">
+            <td>
+                <a th:text="'#'+${tag.name}"
+                   th:href="'/stocks/?tagId='+${tag.id}">
+                </a>
+                <!--a th:text="'#'+${tag.name}"
+                   th:href="'/tags/view/'+${tag.id}">
+                </a -->
+            </td>
+            <td>
+                <a th:if="${#strings.length(tag.description)} < 200"
+                      th:text="${tag.description}">
+                </a>
+                <a th:if="${#strings.length(tag.description)} >= 200"
+                      th:text="${#strings.substring(tag.description,0,200)} + '...'">
+                </a>
+            </td>
+            <td>
+                <a th:text="'Edit #'+${tag.name}"
+                   th:alt-title="'Edit #' + ${tag.name}"
+                   th:href="@{/tags/edit/}+${tag.id}"
+                   class="btn btn-warning btn-sm">
+                </a>
+            </td>
+        </tr>
+    </table>
+    <!--END display table-->
+
+    <th:block th:replace="fragments :: listingResultsPagination"></th:block>
+
 </div>
+<!--END there are actual tags to be displayed-->
+
 <div th:insert="fragments :: footer"></div>
 </body>
 </html>

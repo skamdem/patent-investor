@@ -16,7 +16,8 @@ public class Portfolio extends AbstractEntity {
         this.priceIpRatio = priceIpRatio;
     }
 
-    public Portfolio() { }
+    public Portfolio() {
+    }
 
     public double getPriceIpRatio() {
         return priceIpRatio;

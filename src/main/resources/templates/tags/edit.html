@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org/">
+
 <head th:replace="fragments :: head"></head>
+
 <body class="container">
 <header th:replace="fragments :: header"></header>
 <div th:replace="fragments :: messages"></div>
@@ -8,20 +10,29 @@
 <form method="post" th:action="@{/tags/edit}">
     <div class="form-group">
         <label>Field name
-            <input type="text" name="name" th:value="${theTag.name}" class="form-control">
+            <input type="text"
+                   name="name"
+                   th:value="${theTag.name}"
+                   class="form-control">
         </label>
     </div>
     <div class="form-group">
         <label>Description of the investment field
-            <textarea th:field="${theTag.description}" class="form-control"></textarea>
+            <textarea th:field="${theTag.description}"
+                      class="form-control">
+            </textarea>
         </label>
     </div>
-
-    <input type="hidden" th:value="${theTag.id}" name="tagId" />
+    <input type="hidden"
+           th:value="${theTag.id}"
+           name="tagId" />
     <div class="form-group">
-        <input type="submit" value="Save investment field" class="btn btn-success">
+        <input type="submit"
+               value="Save investment field"
+               class="btn btn-success">
     </div>
 </form>
+
 <div th:insert="fragments :: footer"></div>
 </body>
 </html>

@@ -40,7 +40,10 @@ import static org.launchcode.patentinvestor.models.ApiData.*;
 public class StockController extends AbstractBaseController {
 
     List<Stock> listOfStocksFound;
-    static final int numberOfItemsPerPage = 10;
+
+    //used for pagination
+    static final int numberOfItemsPerPage = 2;
+
     static final String baseColor = "white";
     static final String selectedColor = "green";
     static String ordinarySortCriteria = "";
@@ -52,7 +55,10 @@ public class StockController extends AbstractBaseController {
     int numberOfIexItemsDownloaded = 0;
     int globalSize = 1;// initialize to 1 in order to prevent division by zero
 
+    //In page to search a stock
     static HashMap<String, String> columnChoices = new HashMap<>();
+
+    //Customize private listing exchange display in stock details page
     static HashMap<String, String> stockExchanges = new HashMap<>();
 
     public StockController() {
@@ -118,10 +124,16 @@ public class StockController extends AbstractBaseController {
             @RequestParam("size") Optional<Integer> size) {
         int currentPage = page.orElse(1);
         int pageSize = size.orElse(numberOfItemsPerPage);
+
         String iconsDestinationUrl = "/stocks/reorderedResults/?sortIcon=";
         String paginationDestinationUrl = "/stocks/searchResults/?size=";
+        if (searchTerm != null) {
+            iconsDestinationUrl = "/stocks/reorderedResults/?searchType="+searchType+"&searchTerm="+searchTerm+"&sortIcon=";
+            paginationDestinationUrl = "/stocks/searchResults/?searchType="+searchType+"&searchTerm="+searchTerm+"&size=";
+        }
 
         model.addAttribute("baseColor", baseColor);
+        model.addAttribute("sortIcon", ordinarySortCriteria);
         model.addAttribute("selectedColor", selectedColor);
         model.addAttribute("iconsDestinationUrl", iconsDestinationUrl);
         model.addAttribute("searchDestinationUrl", searchDestinationUrl);
@@ -135,10 +147,13 @@ public class StockController extends AbstractBaseController {
                 listOfStocksFound = new ArrayList<Stock>((List<Stock>) stockRepository.findAll());
             } else {
                 listOfStocksFound = StockData.findByColumnAndValue(searchType, searchTerm, (List<Stock>) stockRepository.findAll());
-                //used to display the form with previous radio button in search.html
-                model.addAttribute("searchType", searchType);
             }
         }
+
+//        System.out.println(searchTerm);
+        //used to display the form with previous radio button in search.html
+        model.addAttribute("searchType", searchType);
+        model.addAttribute("searchTerm", searchTerm);
 
         model.addAttribute("listOfStocksFound", listOfStocksFound);
         paginatedListingService.setListOfItems(listOfStocksFound);
@@ -183,12 +198,23 @@ public class StockController extends AbstractBaseController {
             Model model,
             @RequestParam("page") Optional<Integer> page,
             @RequestParam("size") Optional<Integer> size,
-            @RequestParam("sortIcon") Optional<String> sortIcon) {
+            @RequestParam("sortIcon") Optional<String> sortIcon,
+            @RequestParam(required = false) String searchTerm,
+            @RequestParam(required = false) String searchType) {
         int currentPage = page.orElse(1);
         int pageSize = size.orElse(numberOfItemsPerPage);
         ordinarySortCriteria = sortIcon.orElse(ordinarySortCriteria);
+System.out.println(ordinarySortCriteria);
         String iconsDestinationUrl = "/stocks/reorderedResults/?sortIcon=";
         String paginationDestinationUrl = "/stocks/reorderedResults/?size=";
+        if (searchTerm != null) {
+            iconsDestinationUrl = "/stocks/reorderedResults/?searchType="+searchType+"&searchTerm="+searchTerm+"&sortIcon=";
+            paginationDestinationUrl = "/stocks/searchResults/?searchType="+searchType+"&searchTerm="+searchTerm+"&size=";
+        }
+
+        //used to display the form with previous radio button in search.html
+        model.addAttribute("searchType", searchType);
+        model.addAttribute("searchTerm", searchTerm);
 
         model.addAttribute("baseColor", baseColor);
         model.addAttribute("sortIcon", ordinarySortCriteria);
@@ -228,9 +254,6 @@ public class StockController extends AbstractBaseController {
         model.addAttribute("listOfStocksFound", listOfStocksFound);
         paginatedListingService.setListOfItems(listOfStocksFound);
 
-        //used in (fragments :: listingResults) in search.html
-        //model.addAttribute("stocks", stocks);
-
         //used to display the form in search.html
         model.addAttribute("columns", columnChoices);
         model.addAttribute("title", "Found stock(s)");
@@ -242,7 +265,6 @@ public class StockController extends AbstractBaseController {
             List<Integer> pageNumbers = IntStream.rangeClosed(1, totalPages)
                     .boxed()
                     .collect(Collectors.toList());
-            //model.addAttribute("pageNumbers", pageNumbers);
             List<String> reducedPagination = paginatedListingService.paginating(currentPage, pageNumbers.size());
             model.addAttribute("pageNumbers", reducedPagination);//pageNumbers);
         }
@@ -271,39 +293,45 @@ public class StockController extends AbstractBaseController {
             @RequestParam("page") Optional<Integer> page,
             @RequestParam("size") Optional<Integer> size,
             @RequestParam("sortIcon") Optional<String> sortIcon) {
+
         int currentPage = page.orElse(1);
         int pageSize = size.orElse(numberOfItemsPerPage);
+
         ordinarySortCriteria = sortIcon.orElse(ordinarySortCriteria);
         String iconsDestinationUrl = "/stocks/?sortIcon=";
         String paginationDestinationUrl = "/stocks/?size=";
 
-        model.addAttribute("sortIcon", ordinarySortCriteria);
-        model.addAttribute("baseColor", baseColor);
-        model.addAttribute("selectedColor", selectedColor);
-        model.addAttribute("iconsDestinationUrl", iconsDestinationUrl);
-        model.addAttribute("paginationDestinationUrl", paginationDestinationUrl);
-        //model.addAttribute("currentPage", currentPage);
-
+        //Add IP30's number of patents and weighted price to model
         loadIP30PriceAndPatentsFootprint(model);
+
         if (tagId == null) { // display ALL stocks
             model.addAttribute("title", "All Stocks");
             listOfStocksFound = (List<Stock>) stockRepository.findAll();
-            //model.addAttribute("stocks", stockRepository.findAll());
         } else { // display stocks for tagId
             Optional<Tag> result = tagRepository.findById(tagId);
             if (result.isEmpty()) {
                 listOfStocksFound = new ArrayList<Stock>();//null;
                 model.addAttribute("title", "Invalid Tag ID: " + tagId);
-
-                return "stocks/index";
+                //return "stocks/index";
             } else { // there are stocks for that tag!
                 Tag tag = result.get();
-                model.addAttribute("title", "All Stocks for: " + tag.getName());
+                model.addAttribute("title", "Investment field: " + tag.getDisplayName());
                 listOfStocksFound = tag.getStocks();
-                //model.addAttribute("stocks", tag.getStocks());
+                model.addAttribute("tag", tag);
+                model.addAttribute(MESSAGE_KEY, "info|" +
+                        tag.getDisplayName() +
+                        " is currently set to " +
+                        tag.getStocks().size() + " stock(s).");
+
+                //adjust page destination to stay on this tag page
+                iconsDestinationUrl = "/stocks/?tagId="+tagId+"&sortIcon=";
+                paginationDestinationUrl = "/stocks/?tagId="+tagId+"&size=";
             }
         }
 
+        if (listOfStocksFound.size() == 0){
+            model.addAttribute(MESSAGE_KEY, "info|No stocks were found!");
+        }
         switch (ordinarySortCriteria) {
             case "tickerUp":
                 listOfStocksFound.sort(Comparators.tickerComparator);
@@ -330,12 +358,21 @@ public class StockController extends AbstractBaseController {
                 listOfStocksFound.sort(Comparators.patentsPortfolioComparator.reversed());
                 break;
         }
-
+//System.out.println("number of stocks = "+listOfStocksFound.size());
         paginatedListingService.setListOfItems(listOfStocksFound);
         Page<Stock> stockPage = paginatedListingService.findPaginated(PageRequest.of(currentPage - 1, pageSize));
+
         model.addAttribute("stockPage", stockPage);
+        model.addAttribute("sortIcon", ordinarySortCriteria);
+        model.addAttribute("baseColor", baseColor);
+        model.addAttribute("selectedColor", selectedColor);
+        model.addAttribute("iconsDestinationUrl", iconsDestinationUrl);
+        model.addAttribute("paginationDestinationUrl", paginationDestinationUrl);
+        //model.addAttribute("currentPage", currentPage);
+
         int totalPages = stockPage.getTotalPages();
         if (totalPages > 0) {
+//System.out.println("totalPages = "+totalPages);
             List<Integer> pageNumbers = IntStream.rangeClosed(1, totalPages)
                     .boxed()
                     .collect(Collectors.toList());
@@ -732,7 +769,9 @@ public class StockController extends AbstractBaseController {
         String usptoApiQueryResult = "";
         String stock_q = ""; // contains the usptoApi key
 
-        numberOfUsptoItemsDownloaded = 0; //for display of API update progress
+        //for display of API update progress
+        numberOfUsptoItemsDownloaded = 0;
+
         for (Stock stock : listOfStocks) {
             //GET USPTO Data while using usptoId
             usptoStockUrlString = BASE_URL_USPTO + "api/patents/query?q={stock_q}&f=[\"assignee_type\"]&o={o}";
@@ -757,24 +796,27 @@ public class StockController extends AbstractBaseController {
 
             //Save obtained data to update local repositories
             stockRepository.save(stock);
+
+            //for update of API download progress
             numberOfUsptoItemsDownloaded++;
 
- //           System.out.println("stock " + numberOfUsptoItemsDownloaded + " --> " + stock.getStockDetails().getTotalNumberOfPatents());
+            // System.out.println("stock " + numberOfUsptoItemsDownloaded + " --> " + stock.getStockDetails().getTotalNumberOfPatents());
         }
-//        System.out.println("Completed USPTO API calls");
+        //System.out.println("Completed USPTO API calls");
     }
 
+    /**
+     * This class represents the current number of
+     * successfully called API data
+     */
     class CurrentPercentageDownloaded {
         private long percentValue;
-
         public CurrentPercentageDownloaded(long percentValue) {
             this.percentValue = percentValue;
         }
-
         public long getPercentValue() {
             return percentValue;
         }
-
         public void setPercentValue(long percentValue) {
             this.percentValue = percentValue;
         }
@@ -792,7 +834,7 @@ public class StockController extends AbstractBaseController {
 //        System.out.println("PERCENTAGE1 = " + numberOfUsptoItemsDownloaded);
 //        System.out.println("globalSize = " + globalSize);
 //        System.out.println("PERCENTAGE2 = " + Math.round((double)numberOfUsptoItemsDownloaded*100 / (double)globalSize));
-        return new CurrentPercentageDownloaded(Math.round((double)(numberOfUsptoItemsDownloaded + numberOfIexItemsDownloaded)*100 / (double)(globalSize*2)));
+        return new CurrentPercentageDownloaded(Math.round((double) (numberOfUsptoItemsDownloaded + numberOfIexItemsDownloaded) * 100 / (double) (globalSize * 2)));
     }
 
     /**
@@ -817,7 +859,7 @@ public class StockController extends AbstractBaseController {
 
         int i = 0; //for display of API update progress
         int k = 0;
-        int t = 0;
+        //int t = 0;
         int delta = 0;
         int oldDelta = 0;
 
@@ -835,8 +877,8 @@ public class StockController extends AbstractBaseController {
 
             //Fake price data
             iexStockUrlString = BASE_URL_SANDBOX_IEX
-                            + "/stable/stock/" + stock.getTicker() + "/quote?token="
-                            + IEX_SANDBOX_PUBLIC_TOKEN_TSK + "&filter=latestTime,latestPrice";
+                    + "/stable/stock/" + stock.getTicker() + "/quote?token="
+                    + IEX_SANDBOX_PUBLIC_TOKEN_TSK + "&filter=latestTime,latestPrice";
 
             //Real price data
 //            iexStockUrlString = BASE_URL_LIVE_IEX + "/stable/stock/" + stock.getTicker() + "/quote?token="
@@ -921,12 +963,10 @@ public class StockController extends AbstractBaseController {
                             }
                             break again;
                         } else {
-                            t++;
-
+                            //t++;
 //                            System.out.println("Not giving up on this stock " + k);
                             execution = backOff.start();
                             waitTime = 0;
-
                             break again;
                         }
                     }
@@ -960,7 +1000,6 @@ public class StockController extends AbstractBaseController {
         loadIexApi();
         redirectAttributes.addFlashAttribute(SECOND_MESSAGE_KEY, "success|Completed API calls. You now have the latest market stock data.");
         //System.out.println("Completed API calls");
-        //return "/stocks/refreshing";
         return "redirect:/stocks";
     }
 
@@ -978,6 +1017,11 @@ public class StockController extends AbstractBaseController {
         return "stocks/IP30";
     }
 
+    /**
+     * Compute IP30's number of patents and
+     * weighted price dynamically
+     * @param model
+     */
     void loadIP30PriceAndPatentsFootprint(Model model) {
         int size = 30;
         List<Stock> listOfStocks = (List<Stock>) stockRepository.findAll();

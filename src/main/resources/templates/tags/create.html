@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org/">
+
 <head th:replace="fragments :: head"></head>
+
 <body class="container">
 <header th:replace="fragments :: header"></header>
 <div th:replace="fragments :: messages"></div>
+
 <form method="post">
     <div class="form-group">
         <label>Field name
@@ -17,15 +20,20 @@
         <label>Description of the investment field
             <textarea th:field="${tag.description}"
                       class="form-control"
-                      placeholder="Required description" required>
+                      placeholder="Required description"
+                      required>
             </textarea>
         </label>
         <p class="error" th:errors="${tag.description}"></p>
     </div>
     <div class="form-group">
-        <input type="submit" value="Create" class="btn btn-success">
+        <input type="submit"
+               value="Create"
+               class="btn btn-success">
     </div>
 </form>
+
 <div th:insert="fragments :: footer"></div>
+
 </body>
 </html>

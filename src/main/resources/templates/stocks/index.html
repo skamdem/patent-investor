@@ -7,98 +7,118 @@
 
 <div th:replace="fragments :: messages"></div>
 
-<!-- main class="container-fluid" -->
-
-<h2 th:unless="${stockPage} and ${stockPage.content.size()}">
-    No stocks were found!
-</h2>
-
-<div th:if="${stockPage != null} and ${stockPage.content.size() > 0}"
-     class="row">
-    <div class="col-sm-12 col-md-4 merge-with-background">
-        <div class="card mb-4 merge-with-background">
-            <div class="card-body text-left merge-with-background">
-                <a th:href="@{${'/stocks/callAPIs'}}"
-                   th:alt-title="'Query API to refresh stocks data'"
-                   class="btn btn-info mb-3"
-                   id="refresh-button"
-                >
-                    Refresh stock data
-                </a>
-            </div>
-        </div>
-    </div>
-    <div class="col-sm-12 col-md-8 merge-with-background">
-        <div id="progressionBar"
-             class="progress"
-             th:style="'border:1px solid blue; visibility : hidden; width:80%'">
-            <div id="dynamic"
-                 class="progress-bar progress-bar-success progress-bar-striped progress-bar-animated"
-                 role="progressbar"
-                 style="width: 0%"
-                 aria-valuenow="0"
-                 aria-valuemin="0"
-                 aria-valuemax="100"
-            >
-                <!--span id="current-progress"></span-->
-            </div>
-        </div>
-        <div id="progressionText" style="visibility : hidden; margin-top: 10px;">
-            <p>
-                Currently running API calls to refill the entire database with the latest stock data.
-                <br>Do not navigate away from this page.
-                <br>Approximately <strong><span id="timeLeft">10 minutes</span></strong> left. Please wait...
-            </p>
-        </div>
-    </div>
+<!--START display this if viewing information specific to a given tag-->
+<div class="row"
+     th:if="${tag != null}">
+    <h6 th:text="'Description of ' + ${tag.getDisplayName()} + ':&nbsp;'"
+        th:style="'display:block'">
+    </h6>
+    <div th:text="' ' + ${tag.getDescription()}"></div>
 </div>
+<!--END display this if viewing information specific to a given tag-->
 
-<div class="row">
-    <div class="col">
-        <div class="table-responsive xl">
-            <table class="table table-borderless table-hover table-striped table-dark">
-                <caption>List of stocks</caption>
-                <thead class="thead-dark">
-                <th:block th:replace="fragments :: headerStocksRow"></th:block>
-                <!-- tr>
-                    <th>Ticker</th>
-                    <th>Last Price</th>
-                    <th>Patents Portfolio</th>
-                    <th>Track stock</th>
-                </tr -->
-                </thead>
-                <tbody>
-                <tr>
-                    <td>
-                        <a th:alt-title="'View details of IP30'"
-                           th:href="@{${'/stocks/IP30/'}}">
-                            <span th:text="'IP30'"></span>
+<!--START there are actual stocks to be displayed-->
+<div th:if="${stockPage != null} and ${stockPage.content.size() > 0}">
+
+    <div class="row" th:if="${tag == null}"><!--START display this if NOT viewing information specific to a given tag-->
+        <!--START refresh button-->
+        <div class="col-sm-12 col-md-4 merge-with-background">
+            <div class="card mb-4 merge-with-background">
+                <div class="card-body text-left merge-with-background">
+                    <a th:href="@{${'/stocks/callAPIs'}}"
+                       th:alt-title="'Query API to refresh stocks data'"
+                       class="btn btn-info mb-3"
+                       id="refresh-button"
+                    >
+                        Refresh stock data
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!--END refresh button-->
+
+        <!--START progression bar and explanatory text-->
+        <div class="col-sm-12 col-md-8 merge-with-background">
+            <div id="progressionBar"
+                 class="progress"
+                 th:style="'border:1px solid blue; visibility : hidden; width:80%'">
+                <div id="dynamic"
+                     class="progress-bar progress-bar-success progress-bar-striped progress-bar-animated"
+                     role="progressbar"
+                     style="width: 0%"
+                     aria-valuenow="0"
+                     aria-valuemin="0"
+                     aria-valuemax="100"
+                ><!--span id="current-progress"></span-->
+                </div>
+            </div>
+            <div id="progressionText"
+                 style="visibility : hidden; margin-top: 10px;">
+                <p>
+                    Currently running API calls to refill the entire database with the latest stock data.
+                    <br>Do not navigate away from this page.
+                    <br>Approximately <strong><span id="timeLeft">10 minutes</span></strong> left. Please wait...
+                </p>
+            </div>
+        </div><!--END progression bar and explanatory text-->
+    </div><!--END display this if NOT viewing information specific to a given tag-->
+
+    <!--START display table-->
+    <div class="row">
+        <div class="col">
+            <div class="table-responsive xl">
+                <table class="table table-borderless table-hover table-striped table-dark">
+                    <caption>List of stocks</caption>
+                    <thead class="thead-dark">
+                    <th:block th:replace="fragments :: headerStocksRow"></th:block>
+                    <!-- tr>
+                        <th>Ticker</th>
+                        <th>Last Price</th>
+                        <th>Patents Portfolio</th>
+                        <th>Track stock</th>
+                    </tr -->
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>
+                            <a th:alt-title="'View details of IP30'"
+                               th:href="@{${'/stocks/IP30/'}}">
+                                <span th:text="'IP30'"></span>
+                                <br/>
+                                <span>30 most patented companies</span></a>
+                        </td>
+                        <td>
+                        <span th:style="'color:green; font-weight:bold'"
+                              th:text="${#numbers.formatDecimal(weightedPrice, 0, 'COMMA', 2, 'POINT')}">
+                        </span>
                             <br/>
-                            <span>30 most patented companies</span></a>
-                    </td>
-                    <td>
-                    <span th:style="'color:green; font-weight:bold'"
-                          th:text="${#numbers.formatDecimal(weightedPrice, 0, 'COMMA', 2, 'POINT')}">
-                    </span>
-                        <br/><span th:text="${stockPage.content[0].stockDetails.getLastTradeTime()}">hour</span>
-                    </td>
-                    <td>
-                    <span th:style="'color:green; font-weight:bold'"
-                          th:text="${#numbers.formatDecimal(aggregatedPatents, 0, 'COMMA', 0, 'POINT')}">
-                    </span>
-                        <br/><span th:text="${stockPage.content[0].stockDetails.getLastUsptoApiUpdate()}">hour</span>
-                    </td>
-                    <td></td>
-                </tr>
-                <th:block th:replace="fragments :: listingResults"></th:block>
-                </tbody>
-            </table>
+                            <span th:text="${stockPage.content[0].stockDetails.getLastTradeTime()}">
+                            hour
+                        </span>
+                        </td>
+                        <td>
+                        <span th:style="'color:green; font-weight:bold'"
+                              th:text="${#numbers.formatDecimal(aggregatedPatents, 0, 'COMMA', 0, 'POINT')}">
+                        </span>
+                            <br/>
+                            <span th:text="${stockPage.content[0].stockDetails.getLastUsptoApiUpdate()}">
+                            hour
+                        </span>
+                        </td>
+                        <td></td>
+                    </tr>
+                    <th:block th:replace="fragments :: listingResults"></th:block>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
-</div>
-<th:block th:replace="fragments :: listingResultsPagination"></th:block>
+    <!--END display table-->
 
-<!--/main -->
+    <th:block th:replace="fragments :: listingResultsPagination"></th:block>
+
+</div>
+<!--END there are actual stocks to be displayed-->
 
 <div th:insert="fragments :: footer"></div>
 

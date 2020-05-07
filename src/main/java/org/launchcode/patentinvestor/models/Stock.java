@@ -39,27 +39,48 @@ public class Stock extends AbstractEntity {
         this.iexId = iexIid;
     }
 
-    public Stock() { }
+    public Stock() {
+    }
 
-    public String getTicker() { return ticker; }
+    public String getTicker() {
+        return ticker;
+    }
 
-    public void setTicker(String ticker) { this.ticker = ticker; }
+    public void setTicker(String ticker) {
+        this.ticker = ticker;
+    }
 
-    public StockDetails getStockDetails() { return stockDetails; }
+    public StockDetails getStockDetails() {
+        return stockDetails;
+    }
 
-    public void setStockDetails(StockDetails stockDetails) { this.stockDetails = stockDetails; }
+    public void setStockDetails(StockDetails stockDetails) {
+        this.stockDetails = stockDetails;
+    }
 
-    public List<Tag> getTags() { return tags; }
+    public List<Tag> getTags() {
+        return tags;
+    }
 
-    public void addTag(Tag tag) { this.tags.add(tag); }
+    public void addTag(Tag tag) {
+        this.tags.add(tag);
+    }
 
-    public String getUsptoId() { return usptoId; }
+    public String getUsptoId() {
+        return usptoId;
+    }
 
-    public void setUsptoId(String usptoId) { this.usptoId = usptoId; }
+    public void setUsptoId(String usptoId) {
+        this.usptoId = usptoId;
+    }
 
-    public String getIexId() { return iexId; }
+    public String getIexId() {
+        return iexId;
+    }
 
-    public void setIexId(String iexId) { this.iexId = iexId; }
+    public void setIexId(String iexId) {
+        this.iexId = iexId;
+    }
 
     @Override
     public String toString() {

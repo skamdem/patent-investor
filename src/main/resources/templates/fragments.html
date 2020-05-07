@@ -1,25 +1,32 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org/" xmlns:sec="http://www.w3.org/1999/xhtml">
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org/"
+      xmlns:sec="http://www.w3.org/1999/xhtml">
 
 <head th:fragment="head">
     <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
 
     <title th:text="${title} +' | Patent Investor'"></title>
 
     <!-- link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" -->
-    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/4.4.1-1/css/bootstrap.min.css}"/>
-    <link rel="stylesheet" th:href="@{/styles.css}"/>
-
-    <!-- script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script -->
+    <link rel="stylesheet"
+          type="text/css"
+          th:href="@{/webjars/bootstrap/4.4.1-1/css/bootstrap.min.css}"/>
+    <link rel="stylesheet"
+          type="text/css"
+          th:href="@{/styles.css}"/>
+    <link rel="stylesheet"
+          type="text/css"
+          th:href="@{/pagination.css}"/>
 
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-
+    <!-- script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
     <!--script type="text/javascript" th:src="@{/pagination.js}"></script-->
-    <script type="text/javascript" th:src="@{/script.js}"></script>
-    <link rel="stylesheet" th:href="@{/pagination.css}"/>
+    <script type="text/javascript" th:src="@{/apiDownloadProgressBar.js}"></script>
 </head>
 
 <body>
@@ -28,7 +35,8 @@
     <!-- nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary" id="showcase" -->
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary"
          id="showcase">
-        <a class="navbar-brand" th:href="@{/}">
+        <a class="navbar-brand"
+           th:href="@{/}">
             <img th:src="@{/img/stock_market_icon_96x96px.png}"
                  alt="Patent Investor"
                  width="100"
@@ -45,25 +53,58 @@
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav mr-auto" sec:authorize="isAuthenticated()">
+        <div class="collapse navbar-collapse"
+             id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto"
+                sec:authorize="isAuthenticated()">
                 <!--ul class="navbar-nav mr-auto" th:if="${#authorization.expression('isAuthenticated()')}"-->
                 <!--This content is only shown to authenticated users-->
-                <li class="nav-item"><a class="nav-link" th:href="@{/stocks/search}">Search stock</a></li>
-                <li class="nav-item"><a class="nav-link" th:href="@{/stocks}">All Stocks</a></li>
-                <li class="nav-item"><a class="nav-link" th:href="@{/tags}">All investment fields</a></li>
-                <li class="nav-item"><a class="nav-link" th:href="@{/stocks/portfolio}">Portfolio</a></li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:href="@{/stocks/search}">
+                        Search stock
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:href="@{/stocks}">
+                        All Stocks
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:href="@{/tags}">
+                        All investment fields
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:href="@{/stocks/portfolio}">
+                        Portfolio
+                    </a>
+                </li>
             </ul>
             <ul class="navbar-nav ml-auto">
                 <!--li class="nav-item" th:if="${#authorization.expression('isAuthenticated()')}"-->
-                <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <form th:action="@{/logout}" method="post" name="logoutForm"></form>
-                    <a class="nav-link" href="#" onclick="document.logoutForm.submit()"><i
-                            class="fas fa-sign-out-alt"></i>Log Out</a>
+                <li class="nav-item"
+                    sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}"
+                          method="post"
+                          name="logoutForm">
+                    </form>
+                    <a class="nav-link"
+                       href="#"
+                       onclick="document.logoutForm.submit()">
+                        <i class="fas fa-sign-out-alt"></i>Log Out</a>
                 </li>
                 <!--li class="nav-item" th:if="${#authorization.expression('!isAuthenticated()')}"-->
-                <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <a class="nav-link" th:href="@{/register}"><i class="fas fa-user"></i> Register</a>
+                <li class="nav-item"
+                    sec:authorize="isAuthenticated()">
+                    <a class="nav-link"
+                       th:href="@{/register}">
+                        <i class="fas fa-user"></i>
+                        Register
+                    </a>
                 </li>
             </ul>
         </div>
@@ -96,7 +137,11 @@
          th:with="parts=${#strings.arraySplit(secondMessage, '|')}"
          th:attr="class=${'alert alert-dismissible alert-' + parts[0]}"
          role="alert">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <button type="button"
+                class="close"
+                data-dismiss="alert">
+            &times;
+        </button>
         <div th:text="${parts[1]}"></div>
     </div>
 </div>
@@ -115,7 +160,8 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
                 </div>
                 <div class="flex-arrow-pairs">
                     <div class="arrow-up">
-                        <a alt="up" title="sort ascending"
+                        <a alt="up"
+                           title="sort ascending"
                            th:href="@{${iconsDestinationUrl} + 'tickerUp'}"
                            th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'tickerUp' ? ${selectedColor} : ${baseColor})}"
                         >
@@ -123,7 +169,8 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
                         </a>
                     </div>
                     <div class="arrow-down">
-                        <a alt="down" title="sort descending"
+                        <a alt="down"
+                           title="sort descending"
                            th:href="@{${iconsDestinationUrl} + 'tickerDown'}"
                            th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'tickerDown' ? ${selectedColor} : ${baseColor})}"
                         >
@@ -141,7 +188,8 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
                 </div>
                 <div class="flex-arrow-pairs">
                     <div class="arrow-up">
-                        <a alt="up" title="sort ascending"
+                        <a alt="up"
+                           title="sort ascending"
                            th:href="@{${iconsDestinationUrl} + 'corpUp'}"
                            th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'corpUp' ? ${selectedColor} : ${baseColor})}"
                         >
@@ -149,7 +197,8 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
                         </a>
                     </div>
                     <div class="arrow-down">
-                        <a alt="down" title="sort descending"
+                        <a alt="down"
+                           title="sort descending"
                            th:href="@{${iconsDestinationUrl} + 'corpDown'}"
                            th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'corpDown' ? ${selectedColor} : ${baseColor})}"
                         >
@@ -172,7 +221,8 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
                     </div>
                     <div class="flex-arrow-pairs">
                         <div class="arrow-up">
-                            <a alt="up" title="sort ascending"
+                            <a alt="up"
+                               title="sort ascending"
                                th:href="@{${iconsDestinationUrl} + 'sharesUp'}"
                                th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'sharesUp' ? ${selectedColor} : ${baseColor})}"
                             >
@@ -180,7 +230,8 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
                             </a>
                         </div>
                         <div class="arrow-down">
-                            <a alt="down" title="sort descending"
+                            <a alt="down"
+                               title="sort descending"
                                th:href="@{${iconsDestinationUrl} + 'sharesDown'}"
                                th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'sharesDown' ? ${selectedColor} : ${baseColor})}"
                             >
@@ -199,7 +250,8 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
                     </div>
                     <div class="flex-arrow-pairs">
                         <div class="arrow-up">
-                            <a alt="up" title="sort ascending"
+                            <a alt="up"
+                               title="sort ascending"
                                th:href="@{${iconsDestinationUrl} + 'percentInPortfolioUp'}"
                                th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'percentInPortfolioUp' ? ${selectedColor} : ${baseColor})}"
                             >
@@ -207,7 +259,8 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
                             </a>
                         </div>
                         <div class="arrow-down">
-                            <a alt="down" title="sort descending"
+                            <a alt="down"
+                               title="sort descending"
                                th:href="@{${iconsDestinationUrl} + 'percentInPortfolioDown'}"
                                th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'percentInPortfolioDown' ? ${selectedColor} : ${baseColor})}"
                             >
@@ -229,7 +282,8 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
                 </div>
                 <div class="flex-arrow-pairs">
                     <div class="arrow-up">
-                        <a alt="up" title="sort ascending"
+                        <a alt="up"
+                           title="sort ascending"
                            th:href="@{${iconsDestinationUrl} + 'priceUp'}"
                            th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'priceUp' ? ${selectedColor} : ${baseColor})}"
                         >
@@ -237,7 +291,8 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
                         </a>
                     </div>
                     <div class="arrow-down">
-                        <a alt="down" title="sort descending"
+                        <a alt="down"
+                           title="sort descending"
                            th:href="@{${iconsDestinationUrl} + 'priceDown'}"
                            th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'priceDown' ? ${selectedColor} : ${baseColor})}"
                         >
@@ -256,7 +311,8 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
                 </div>
                 <div class="flex-arrow-pairs">
                     <div class="arrow-up">
-                        <a alt="up" title="sort ascending"
+                        <a alt="up"
+                           title="sort ascending"
                            th:href="@{${iconsDestinationUrl} + 'patentsUp'}"
                            th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'patentsUp' ? ${selectedColor} : ${baseColor})}"
                         >
@@ -264,7 +320,8 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
                         </a>
                     </div>
                     <div class="arrow-down">
-                        <a alt="down" title="sort descending"
+                        <a alt="down"
+                           title="sort descending"
                            th:href="@{${iconsDestinationUrl} + 'patentsDown'}"
                            th:style="'text-decoration:none;' + 'color:' + @{(${sortIcon} and ${sortIcon} == 'patentsDown' ? ${selectedColor} : ${baseColor})}"
                         >
@@ -296,8 +353,13 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
         <th>
             <div class="flex-sort-group">
                 <div>
-                    <span th:unless="${netWorth != null}" th:text="'Track '"></span>
-                    <span th:if="${netWorth != null}" th:text="'Divest '"></span> stock
+                    <span th:unless="${netWorth != null}"
+                          th:text="'Track '">
+                    </span>
+                    <span th:if="${netWorth != null}"
+                          th:text="'Divest '">
+                    </span>
+                    &nbsp;stock
                 </div>
                 <div class="flex-arrow-pairs hide">
                     <div class="arrow-up">
@@ -312,10 +374,8 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
     </tr>
     <script>
         feather.replace({height: '20', width: '15', class: 'foo bar', 'stroke-width': 5 })
-
-
     </script>
-</th:block>
+</th:block><!--ENF OF BLOCK "headerStocksRow"-->
 
 <!--th:href="@{${paginationDestinationUrl}+${stockPage.size}+'&page='+${pageNumber}}"-->
 <th:block th:fragment="listingResults">
@@ -328,6 +388,7 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
             <br/>
             <span th:text="${stock.stockDetails.companyName}"></span>
         </td>
+
         <!-- Begin optional section for portfolio page-->
         <th:block th:if="${netWorth != null}">
             <td>
@@ -339,21 +400,31 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
             </td>
             <td>
                 <span th:if="${netWorth != 0.0}"
-                      th:text="${#numbers.formatDecimal((stock.stockDetails.getNumberOfShares()*stock.stockDetails.latestPrice)*100 / netWorth, 2, 'COMMA', 2, 'POINT')} + ' %'"></span>
+                      th:text="${#numbers.formatDecimal((stock.stockDetails.getNumberOfShares()*stock.stockDetails.latestPrice)*100 / netWorth, 2, 'COMMA', 2, 'POINT')} + ' %'">
+                </span>
                 <span th:if="${netWorth == 0.0}"
-                      th:alt-title="'Nothing bought in your portfolio'">n\a</span>
+                      th:alt-title="'Nothing bought in your portfolio'">
+                    n\a
+                </span>
             </td>
         </th:block>
         <!-- End optional section for portfolio page-->
+
         <td>
-            <span th:text="${stock.stockDetails.latestPrice}"></span><br/>
-            <span th:text="${stock.stockDetails.lastTradeTime}"></span><br/>
-            <span th:text="${stock.stockDetails.exchange}"></span>
+            <span th:text="${stock.stockDetails.latestPrice}">
+            </span><br/>
+            <span th:text="${stock.stockDetails.lastTradeTime}">
+            </span><br/>
+            <span th:text="${stock.stockDetails.exchange}">
+            </span>
         </td>
         <td>
-            <span th:text="${#numbers.formatDecimal(stock.stockDetails.totalNumberOfPatents, 0, 'COMMA', 0, 'POINT')}"></span><br/>
-            <span th:text="${stock.stockDetails.lastUsptoApiUpdate}"></span>
+            <span th:text="${#numbers.formatDecimal(stock.stockDetails.totalNumberOfPatents, 0, 'COMMA', 0, 'POINT')}">
+            </span><br/>
+            <span th:text="${stock.stockDetails.lastUsptoApiUpdate}">
+            </span>
         </td>
+
         <!-- Begin optional section for portfolio page-->
         <td th:if="${netWorth != null}">
             <span th:unless="${stock.tags.size()} > 0"
@@ -369,6 +440,7 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
             </th:block>
         </td>
         <!-- End optional section for portfolio page-->
+
         <td>
             <!-- Display this if OUTSIDE portfolio page -->
             <th:block th:if="${netWorth == null}">
@@ -398,33 +470,12 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
                 </a>
             </th:block>
         </td>
-
-        <!-- td><a th:href="@{${'/events/detail/'+event.uid}}" th:text="${event.title}"></a></td -->
-        <!-- tr th:each="tag, iStat : ${tagPage.content}">
-            <td>
-                <a th:text="'#'+${tag.name}"
-                   th:href="'/tags?tagId='+${tag.id}"></a>
-            </td>
-            <td>
-                <a th:text="${tag.description}">
-                </a>
-            </td>
-            <td>
-                <a th:text="'Edit #'+${tag.name}"
-                   th:alt-title="'Edit #' + ${tag.name}"
-                   th:href="@{/tags/edit/}+${tag.id}"></a>
-            </td>
-        </tr -->
-        <!--
-                <span th:text="${stock.stockDetails.foreignCode}"></span>
-                <span th:text="${stock.stockDetails.inPortfolio}"></span>
-                <span th:text="${stock.stockDetails.numberOfShares}"></span>
-        -->
     </tr>
 </th:block>
 
+<!-- START pagination display -->
 <div th:fragment="listingResultsPagination"
-     th:if="${stockPage.totalPages >= 1}"
+     th:if="${stockPage.totalPages > 1}"
      id="paginationDiv">
     <ul>
         <li th:each="pageNumber : ${pageNumbers}"
@@ -442,8 +493,8 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
         </li>
     </ul>
 </div>
-<!-- div class="spaceAboveFooter">
-</div -->
+<!-- END pagination display -->
+
 <footer th:fragment="footer"
         class="navbar fixed-bottom navbar-expand-lg navbar-dark"
         id="footer-showcase">

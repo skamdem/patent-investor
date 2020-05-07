@@ -1,7 +1,9 @@
 package org.launchcode.patentinvestor.controllers;
 
 import org.launchcode.patentinvestor.data.TagRepository;
+import org.launchcode.patentinvestor.models.Comparators;
 import org.launchcode.patentinvestor.models.PaginatedListingService;
+import org.launchcode.patentinvestor.models.Stock;
 import org.launchcode.patentinvestor.models.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -27,6 +29,9 @@ import java.util.stream.IntStream;
 public class TagController extends AbstractBaseController {
 
     static final int numberOfItemsPerPage = 10;
+    static final String baseColor = "white";
+    static final String selectedColor = "green";
+    static String ordinarySortCriteria = "";
 
     @Autowired
     private TagRepository tagRepository;
@@ -38,15 +43,42 @@ public class TagController extends AbstractBaseController {
     public String displayAllTags(
             Model model,
             @RequestParam("page") Optional<Integer> page,
-            @RequestParam("size") Optional<Integer> size) {
+            @RequestParam("size") Optional<Integer> size,
+            @RequestParam("sortIcon") Optional<String> sortIcon
+    ) {
         int currentPage = page.orElse(1);
         int pageSize = size.orElse(numberOfItemsPerPage);
-        model.addAttribute("title", "All investment fields");
+        ordinarySortCriteria = sortIcon.orElse(ordinarySortCriteria);
+        String iconsDestinationUrl = "/tags/?sortIcon=";
+        String paginationDestinationUrl = "/tags/?size=";
 
-        paginatedListingService.setListOfItems((List<Tag>) tagRepository.findAll());
+        List<Tag> listOfTagsFound = (List<Tag>) tagRepository.findAll();
+
+        if (listOfTagsFound.size() == 0){
+            model.addAttribute(MESSAGE_KEY, "info|No investments were found! Click the 'create new field' button below to create one");
+        }
+
+        switch (ordinarySortCriteria) {
+            case "investmentFieldUp":
+                listOfTagsFound.sort(Comparators.tagComparator);
+                break;
+            case "investmentFieldDown":
+                listOfTagsFound.sort(Comparators.tagComparator.reversed());
+                break;
+        }
+
+        paginatedListingService.setListOfItems(listOfTagsFound);
         Page<Tag> tagPage = paginatedListingService.findPaginated(PageRequest.of(currentPage - 1, pageSize));
 
-        model.addAttribute("tagPage", tagPage);
+        model.addAttribute("title", "All investment fields");
+
+        //named stockPage because using the same fragment as that of stocks
+        model.addAttribute("stockPage", tagPage);
+        model.addAttribute("sortIcon", ordinarySortCriteria);
+        model.addAttribute("baseColor", baseColor);
+        model.addAttribute("selectedColor", selectedColor);
+        model.addAttribute("iconsDestinationUrl", iconsDestinationUrl);
+        model.addAttribute("paginationDestinationUrl", paginationDestinationUrl);
 
         int totalPages = tagPage.getTotalPages();
         if (totalPages > 0) {
@@ -62,7 +94,10 @@ public class TagController extends AbstractBaseController {
 
     @GetMapping("create")
     public String renderCreateTagForm(Model model) {
-        model.addAttribute("title", "Create Tag (Investment field)");
+        model.addAttribute("title", "Create investment field");
+        model.addAttribute(MESSAGE_KEY, "info|'Investments fields' help categorize" +
+                " stocks. Keep the 'Field name' short, ideally a single word of less than 10 characters." +
+                " You may be more descriptive in the property 'Description of the investment field'.");
         model.addAttribute(new Tag());
         return "tags/create";
     }
@@ -90,7 +125,7 @@ public class TagController extends AbstractBaseController {
         List<Tag> tags = new ArrayList<>();
         Iterable<Tag> allTags = tagRepository.findAll();
         for (Tag tag : allTags) {
-            if (tag.getStocks().size() == 0){
+            if (tag.getStocks().size() == 0) {
                 tags.add(tag);
             }
         }

@@ -10,11 +10,16 @@ public enum ForeignCode {
     private final String displayName;
     private final int usptoCode;
 
-    ForeignCode(String displayName, int usptoCode){
+    ForeignCode(String displayName, int usptoCode) {
         this.displayName = displayName;
         this.usptoCode = usptoCode;
     }
 
-    public String getDisplayName() { return displayName; }
-    public int getUsptoCode() { return usptoCode; }
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public int getUsptoCode() {
+        return usptoCode;
+    }
 }

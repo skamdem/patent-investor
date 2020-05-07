@@ -39,11 +39,11 @@ public class User extends AbstractEntity {
         return username;
     }
 
-    public void setUserRatio(double priceIpRatio){
+    public void setUserRatio(double priceIpRatio) {
         this.portfolio.setPriceIpRatio(priceIpRatio);
     }
 
-    public double getUserRatio(){
+    public double getUserRatio() {
         return this.portfolio.getPriceIpRatio();
     }
 

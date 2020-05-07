@@ -40,7 +40,6 @@
                     </span>
                     <th:block th:if="${stock.getTags().size()>=2}">
                         <span th:text="'Additional tags for this stock: '"></span>
-
                         <th:block th:each="tag : ${stock.getTags()}"
                                   th:if="${tag.id != theTag.id}">
                             <a th:text="${tag.getDisplayName()} + ' '"

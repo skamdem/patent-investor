@@ -8,7 +8,10 @@
 <div class="container body-content">
     <!-- h1 th:text="${#strings.capitalizeWords(title)}"></h1 -->
 
-    <form th:action="@{${searchDestinationUrl}}" method="post" class="search">
+    <!--START Display search form-->
+    <form th:action="@{${searchDestinationUrl}}"
+          method="post"
+          class="search">
         <h2>Search stock by:</h2>
         <p>
             <span th:each="column : ${columns}">
@@ -28,37 +31,50 @@
                         th:value="${column.key}"
                         th:checked="${column.key == searchType}"/>
                 </th:block>
-                <label th:for="${column.key}" th:text="${column.value}"></label>
+                <label th:for="${column.key}"
+                       th:text="${column.value}">
+                </label>
             </span>
         </p>
         <p>
             <label for="searchTerm">Keyword:</label>
-            <input type="text" name="searchTerm" id="searchTerm"/>
+            <!-- input type="hidden" th:field="${searchedTerm}" -->
+            <input type="text"
+                   name="searchTerm"
+                   th:value="${searchTerm}"
+                   id="searchTerm"/>
         </p>
-        <input type="submit" value="Search"/>
+        <input type="submit"
+               value="Search"/>
     </form>
+    <!--END Display search form-->
 
     <hr/>
 
+    <!--START Display search results-->
     <th:block th:if="${stockPage}">
         <h2 th:unless="${stockPage} and ${stockPage.content.size()}">No stocks were found!</h2>
         <th:block th:if="${stockPage.content.size()}">
-            <h3 th:text="${listOfStocksFound.size()} + ' stocks found'"></h3>
+            <h3 th:text="${listOfStocksFound.size()} + ' stocks found for \'' + ${searchTerm} + '\''">
+            </h3>
             <div class="row">
                 <div class="col">
-                    <table class="table table-borderless table-striped table-dark">
-                        <thead class="thead-dark">
-                        <th:block th:replace="fragments :: headerStocksRow"></th:block>
-                        </thead>
-                        <tbody>
-                        <th:block th:replace="fragments :: listingResults"></th:block>
-                        </tbody>
-                    </table>
+                    <div class="table-responsive xl">
+                        <table class="table table-borderless table-hover table-striped table-dark">
+                            <thead class="thead-dark">
+                            <th:block th:replace="fragments :: headerStocksRow"></th:block>
+                            </thead>
+                            <tbody>
+                            <th:block th:replace="fragments :: listingResults"></th:block>
+                            </tbody>
+                        </table>
+                    </div>
                     <th:block th:replace="fragments :: listingResultsPagination"></th:block>
                 </div>
             </div>
         </th:block>
     </th:block>
+    <!--END Display search results-->
     <!--
     tickerUp    tickerDown
     corpUp    corpDown
