@@ -42,7 +42,7 @@ public class StockController extends AbstractBaseController {
     List<Stock> listOfStocksFound;
 
     //used for pagination
-    static final int numberOfItemsPerPage = 2;
+    static final int numberOfItemsPerPage = 10;
 
     static final String baseColor = "white";
     static final String selectedColor = "green";
@@ -128,8 +128,8 @@ public class StockController extends AbstractBaseController {
         String iconsDestinationUrl = "/stocks/reorderedResults/?sortIcon=";
         String paginationDestinationUrl = "/stocks/searchResults/?size=";
         if (searchTerm != null) {
-            iconsDestinationUrl = "/stocks/reorderedResults/?searchType="+searchType+"&searchTerm="+searchTerm+"&sortIcon=";
-            paginationDestinationUrl = "/stocks/searchResults/?searchType="+searchType+"&searchTerm="+searchTerm+"&size=";
+            iconsDestinationUrl = "/stocks/reorderedResults/?searchType=" + searchType + "&searchTerm=" + searchTerm + "&sortIcon=";
+            paginationDestinationUrl = "/stocks/searchResults/?searchType=" + searchType + "&searchTerm=" + searchTerm + "&size=";
         }
 
         model.addAttribute("baseColor", baseColor);
@@ -204,12 +204,12 @@ public class StockController extends AbstractBaseController {
         int currentPage = page.orElse(1);
         int pageSize = size.orElse(numberOfItemsPerPage);
         ordinarySortCriteria = sortIcon.orElse(ordinarySortCriteria);
-System.out.println(ordinarySortCriteria);
+        System.out.println(ordinarySortCriteria);
         String iconsDestinationUrl = "/stocks/reorderedResults/?sortIcon=";
         String paginationDestinationUrl = "/stocks/reorderedResults/?size=";
         if (searchTerm != null) {
-            iconsDestinationUrl = "/stocks/reorderedResults/?searchType="+searchType+"&searchTerm="+searchTerm+"&sortIcon=";
-            paginationDestinationUrl = "/stocks/searchResults/?searchType="+searchType+"&searchTerm="+searchTerm+"&size=";
+            iconsDestinationUrl = "/stocks/reorderedResults/?searchType=" + searchType + "&searchTerm=" + searchTerm + "&sortIcon=";
+            paginationDestinationUrl = "/stocks/searchResults/?searchType=" + searchType + "&searchTerm=" + searchTerm + "&size=";
         }
 
         //used to display the form with previous radio button in search.html
@@ -318,19 +318,19 @@ System.out.println(ordinarySortCriteria);
                 model.addAttribute("title", "Investment field: " + tag.getDisplayName());
                 listOfStocksFound = tag.getStocks();
                 model.addAttribute("tag", tag);
-                model.addAttribute(MESSAGE_KEY, "info|" +
+                model.addAttribute(INFO_MESSAGE_KEY, "info|" +
                         tag.getDisplayName() +
                         " is currently set to " +
                         tag.getStocks().size() + " stock(s).");
 
                 //adjust page destination to stay on this tag page
-                iconsDestinationUrl = "/stocks/?tagId="+tagId+"&sortIcon=";
-                paginationDestinationUrl = "/stocks/?tagId="+tagId+"&size=";
+                iconsDestinationUrl = "/stocks/?tagId=" + tagId + "&sortIcon=";
+                paginationDestinationUrl = "/stocks/?tagId=" + tagId + "&size=";
             }
         }
 
-        if (listOfStocksFound.size() == 0){
-            model.addAttribute(MESSAGE_KEY, "info|No stocks were found!");
+        if (listOfStocksFound.size() == 0) {
+            model.addAttribute(INFO_MESSAGE_KEY, "info|No stocks were found!");
         }
         switch (ordinarySortCriteria) {
             case "tickerUp":
@@ -393,14 +393,14 @@ System.out.println(ordinarySortCriteria);
         Optional<Stock> result = stockRepository.findById(stockId);
         if (result.isEmpty()) {
             model.addAttribute("title", "Invalid Stock ID: " + stockId);
-            //model.addAttribute(MESSAGE_KEY, "warning|No matching stock found in your portfolio");
+            //model.addAttribute(INFO_MESSAGE_KEY, "warning|No matching stock found in your portfolio");
         } else { // there are stocks for that stockId!
             Stock stock = result.get();
             model.addAttribute("title", "Summary of '" + stock.getTicker() + "'");
             model.addAttribute("stock", stock);
             model.addAttribute("exchangePlatforms", stockExchanges);
             if (stock.getStockDetails().isInPortfolio()) {
-                model.addAttribute(MESSAGE_KEY, "info|The stock '" + stock.getTicker() + "' is currently in your portfolio");
+                model.addAttribute(INFO_MESSAGE_KEY, "info|The stock '" + stock.getTicker() + "' is currently in your portfolio");
             }
             loadAddtionalStockDataFromIexApi(stock.getTicker(), model);
         }
@@ -495,7 +495,7 @@ System.out.println(ordinarySortCriteria);
         model.addAttribute("aggregatedPatents", aggregatedPatents);
         model.addAttribute("netWorth", netWorth);
 
-        model.addAttribute(MESSAGE_KEY, "info|Click on the number of shares to adjust it for each stock");
+        model.addAttribute(INFO_MESSAGE_KEY, "info|Click on the number of shares to adjust it for each stock");
         paginatedListingService.setListOfItems(portfolioList);
         Page<Stock> stockPage = paginatedListingService.findPaginated(PageRequest.of(currentPage - 1, pageSize));
         model.addAttribute("stockPage", stockPage);
@@ -524,7 +524,7 @@ System.out.println(ordinarySortCriteria);
         model.addAttribute("title",
                 "Edit number of shares for " + ticker);
         model.addAttribute("stock", stock);
-        model.addAttribute(MESSAGE_KEY, "info|The" +
+        model.addAttribute(INFO_MESSAGE_KEY, "info|The" +
                 " number of shares must be a number between 1 and 1000");
         model.addAttribute("stockId", stockId);
         return "stocks/adjust-shares";
@@ -544,7 +544,7 @@ System.out.println(ordinarySortCriteria);
         Stock stock = stockRepository.findById(stockId).get();
         stock.getStockDetails().setNumberOfShares(numberOfShares);
         stockRepository.save(stock);
-        redirectAttributes.addFlashAttribute(SECOND_MESSAGE_KEY, "success|The" +
+        redirectAttributes.addFlashAttribute(ACTION_MESSAGE_KEY, "success|The" +
                 " number of shares has been updated successfully for " + stock.getTicker());
         return "redirect:/stocks/portfolio";
     }
@@ -565,7 +565,7 @@ System.out.println(ordinarySortCriteria);
             Stock stock = result.get();
             stock.getStockDetails().setInPortfolio(true);
             stockRepository.save(stock);
-            model.addAttribute(MESSAGE_KEY, "success|The stock '" + stock.getTicker() + "' has been added to your portfolio");
+            model.addAttribute(ACTION_MESSAGE_KEY, "success|The stock '" + stock.getTicker() + "' has been added to your portfolio");
             model.addAttribute("title", "Summary of '" + stock.getTicker() + "'");
             model.addAttribute("stock", stock);
             model.addAttribute("exchangePlatforms", stockExchanges);
@@ -622,28 +622,31 @@ System.out.println(ordinarySortCriteria);
      * Display details of a stock AFTER
      * removing a stock from portfolio
      * This method returns at URL /stocks/detail
+     * @param stockId
+     * @param redirectAttributes
+     * @return
      */
     @GetMapping("remove-from-portfolio/{stockId}")
     public String displayStockDetailsRemovedFromPortfolio(
             @PathVariable Integer stockId,
-            Model model) {
+            RedirectAttributes redirectAttributes) {
         Optional<Stock> result = stockRepository.findById(stockId);
         if (result.isEmpty()) {
-            model.addAttribute("title", "Invalid Stock ID: " + stockId);
+            //model.addAttribute("title", "Invalid Stock ID: " + stockId);
+            redirectAttributes.addFlashAttribute(ACTION_MESSAGE_KEY, "danger|Invalid Stock ID: " + stockId);
         } else { // there are stocks for that stockId!
             Stock stock = result.get();
             stock.getStockDetails().setNumberOfShares(0);
             stock.getStockDetails().setInPortfolio(false);
             stockRepository.save(stock);
-            model.addAttribute(MESSAGE_KEY, "success|The stock '" + stock.getTicker() + "' has been removed from your portfolio. " +
+            redirectAttributes.addFlashAttribute(ACTION_MESSAGE_KEY, "success|The stock '" + stock.getTicker() + "' has been removed from your portfolio. " +
                     "All shares previously set to this stock have been wiped out.");
-            model.addAttribute("title", "Summary of '" + stock.getTicker() + "'");
-            model.addAttribute("stock", stock);
-            model.addAttribute("exchangePlatforms", stockExchanges);
-
-            loadAddtionalStockDataFromIexApi(stock.getTicker(), model);
+//            model.addAttribute("title", "Summary of '" + stock.getTicker() + "'");
+//            model.addAttribute("stock", stock);
+//            model.addAttribute("exchangePlatforms", stockExchanges);
+//            loadAddtionalStockDataFromIexApi(stock.getTicker(), model);
         }
-        return "stocks/detail";
+        return "redirect:/stocks/portfolio";//"stocks/detail";
     }
 
     /**
@@ -689,10 +692,10 @@ System.out.println(ordinarySortCriteria);
             if (!stock.getTags().contains(tag)) {
                 stock.addTag(tag);
                 stockRepository.save(stock);
-                redirectAttributes.addFlashAttribute(SECOND_MESSAGE_KEY, "success|New investment field " + tag.getDisplayName() + " added to stock '" +
+                redirectAttributes.addFlashAttribute(ACTION_MESSAGE_KEY, "success|New investment field " + tag.getDisplayName() + " added to stock '" +
                         stock.getTicker() + "'");
             } else {
-                redirectAttributes.addFlashAttribute(SECOND_MESSAGE_KEY, "info|Investment field " + tag.getDisplayName() + " is already set to stock '" +
+                redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "info|Investment field " + tag.getDisplayName() + " is already set to stock '" +
                         stock.getTicker() + "'");
             }
             return "redirect:detail/" + stock.getId();
@@ -748,7 +751,7 @@ System.out.println(ordinarySortCriteria);
             }
         }
         messageString = (messageString == "") ? "None" : messageString;
-        redirectAttributes.addFlashAttribute(SECOND_MESSAGE_KEY, "success|The following investment(s) field(s) " +
+        redirectAttributes.addFlashAttribute(ACTION_MESSAGE_KEY, "success|The following investment(s) field(s) " +
                 "got removed from stock " + stock.getTicker() + ": " + messageString);
         stockRepository.save(stock);
         return "redirect:detail/" + stock.getId();
@@ -811,12 +814,15 @@ System.out.println(ordinarySortCriteria);
      */
     class CurrentPercentageDownloaded {
         private long percentValue;
+
         public CurrentPercentageDownloaded(long percentValue) {
             this.percentValue = percentValue;
         }
+
         public long getPercentValue() {
             return percentValue;
         }
+
         public void setPercentValue(long percentValue) {
             this.percentValue = percentValue;
         }
@@ -981,24 +987,15 @@ System.out.println(ordinarySortCriteria);
     }
 
     /**
-     * Display details of my portfolio
-     * <p>
-     * "headerStocksRow" works with:
-     * sortIcon (Optional), iconsDestinationUrl, selectedColor, baseColor
-     * <p>
-     * "listingResults" works with: stockPage
-     * <p>
-     * "listingResultsPagination" works with:
-     * stockPage, pageNumbers, currentPage, paginationDestinationUrl
-     * <p>
-     * This method returns at URL /stocks/portfolio
+     * @param redirectAttributes
+     * @return
      */
     @GetMapping("callAPIs")
     public String displayStocksAfterCallingAPIs(
             RedirectAttributes redirectAttributes) {
         loadUsptoAPI();
         loadIexApi();
-        redirectAttributes.addFlashAttribute(SECOND_MESSAGE_KEY, "success|Completed API calls. You now have the latest market stock data.");
+        redirectAttributes.addFlashAttribute(ACTION_MESSAGE_KEY, "success|Completed API calls. You now have the latest market stock data.");
         //System.out.println("Completed API calls");
         return "redirect:/stocks";
     }
@@ -1020,6 +1017,7 @@ System.out.println(ordinarySortCriteria);
     /**
      * Compute IP30's number of patents and
      * weighted price dynamically
+     *
      * @param model
      */
     void loadIP30PriceAndPatentsFootprint(Model model) {

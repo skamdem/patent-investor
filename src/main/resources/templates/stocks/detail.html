@@ -36,7 +36,8 @@
 
 <div th:if="${website}"
      th:style="'text-align: center; display: block;'"
-     th:alt-title="'Visit website of ' + ${stock.ticker}" class="row">
+     th:alt-title="'Visit website of ' + ${stock.ticker}"
+     class="row">
     <a target="_blank" th:href="${website}">
         <img th:src="${logoUrl}"/>
     </a>
@@ -51,7 +52,8 @@
     <br>
 </div>
 
-<table class="table table-striped">
+<!--table class="table table-striped"-->
+<table class="table table-borderless table-hover table-striped table-dark">
     <tr>
         <th>Full name of company :</th>
         <td th:text="${stock.getStockDetails().getCompanyName()}"></td>
@@ -106,8 +108,11 @@
                 <th:block th:each="tag : ${stock.getTags()}">
                     <a th:text="${tag.getDisplayName()} + ' '"
                        th:alt-title="'View details of ' + ${tag.getDisplayName()}"
-                       th:href="'/tags/view/'+${tag.id}">
+                       th:href="'/stocks/?tagId='+${tag.id}">
                     </a>
+                    <!--a th:text="'#'+${tag.name}"
+                       th:href="'/tags/view/'+${tag.id}">
+                    </a-->
                 </th:block>
             </th:block>
         </td>

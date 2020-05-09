@@ -30,9 +30,7 @@
 </head>
 
 <body>
-
 <header th:fragment="header">
-    <!-- nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary" id="showcase" -->
     <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary"
          id="showcase">
         <a class="navbar-brand"
@@ -110,18 +108,12 @@
         </div>
     </nav>
 
-    <div style="height:150px"></div>
+    <!--div style="height:150px"></div-->
 
     <h1 th:unless="${title} == 'Search stock' or ${title} == 'Found stock(s)'"
         th:text="${title}">
         Patent Investor
     </h1>
-    <!-- ul class="nav">
-        <li class="nav-item"><a class="nav-link" href="/stocks">All Stocks</a></li>
-        <li class="nav-item"><a class="nav-link" href="/tags">All investment fields</a></li>
-        <li class="nav-item"><a class="nav-link" href="/tags/create">Create investment field</a></li>
-        <li class="nav-item"><a class="nav-link" href="/tags/delete">Delete investment field</a></li>
-    </ul -->
 </header>
 
 <div th:fragment="messages" class="container">
@@ -432,9 +424,13 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
             ></span>
             <th:block th:if="${stock.getTags().size()>=1}">
                 <th:block th:each="tag : ${stock.getTags()}">
-                    <a th:text="${tag.getDisplayName()} + ' '"
+                    <!--a th:text="${tag.getDisplayName()} + ' '"
                        th:alt-title="'View details of ' + ${tag.getDisplayName()}"
                        th:href="'/tags/view/'+${tag.id}">
+                    </a-->
+                    <a th:text="${tag.getDisplayName()} + ' '"
+                       th:alt-title="'View details of ' + ${tag.getDisplayName()}"
+                       th:href="'/stocks/?tagId='+${tag.id}">
                     </a>
                 </th:block>
             </th:block>
@@ -505,5 +501,6 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
         <a target="_blank" href="https://developer.uspto.gov/api-catalog/patentsview">USPTO</a>
     </div>
 </footer>
+
 </body>
 </html>

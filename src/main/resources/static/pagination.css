@@ -24,7 +24,8 @@ body {
 }
 
 #paginationDiv {
-    margin-bottom: 100px;
+    margin-bottom: 0px; /*100px*/
+    /*border : 1px solid green;*/
 }
 
 #paginationDiv ul {

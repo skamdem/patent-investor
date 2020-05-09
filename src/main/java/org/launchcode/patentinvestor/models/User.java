@@ -47,7 +47,6 @@ public class User extends AbstractEntity {
         return this.portfolio.getPriceIpRatio();
     }
 
-
     public boolean isMatchingPassword(String password) {
         return encoder.matches(password, pwHash);
     }

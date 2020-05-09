@@ -5,7 +5,8 @@
 <header th:replace="fragments :: header"></header>
 <div th:replace="fragments :: messages"></div>
 
-<form method="post" th:action="@{/stocks/adjust-shares-portfolio}">
+<form method="post"
+      th:action="@{/stocks/adjust-shares-portfolio}">
     <div class="form-group">
         <label>Number of shares for <span th:text="${stock.ticker}"></span>
             <input class="form-control"

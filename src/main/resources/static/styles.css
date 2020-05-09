@@ -3,27 +3,31 @@ body {
   /*background: url("./img/stock_exchange.jpg");
   background-repeat: no-repeat;*/
   background-color:#f4f4f4;
+  /*top and bottom margins are together 0px
+    right and left margins are together 0px*/
+  padding-left: 0px;
+  padding-right: 0px;
   padding-bottom : 100px;
+  margin-top: 140px;
+  /*border : 2px solid red;*/
 }
 
+/*=====START HEADER navigation in fragments=========*/
 #showcase{
     /*light abstract blue image with tools settings = LARGE*/
     background-image: url('/img/showcase.jpg');
     background-repeat: no-repeat;
     background-size: 100% 100%;
     min-height: 100px;
-    margin-bottom: 30px;
+    /*margin-bottom: 30px;
+    border : 2px solid pink;*/
     background-position: center;
     text-align: center;
 }
+/*=====END HEADER navigation in fragments=========*/
 
 .error {
   color: red;
-}
-
-.merge-with-background {
-  background-color:#f4f4f4;
-  border-style: none;
 }
 
 .search label {
@@ -35,6 +39,15 @@ a {
   color: coral;
 }
 
+
+/*=== Start divs Above tables in various pages ===*/
+.merge-with-background {
+  background-color:#f4f4f4;
+  border-style: none;
+}
+/*=== End divs Above tables in various pages ===*/
+
+/*============START FIXING FOOTER=====================*/
 #footer-showcase {
     padding : 0px;
 }
@@ -51,8 +64,9 @@ a {
     width: 100%;
     background-position: center;
 }
+/*============END FIXING FOOTER=====================*/
 
-/* Fixing arrows display */
+/*=====START FIXING ARROWS ICONS in table of listing stock display===========*/
 .flex-sort-group {
   /*display: flex;
   width: 15px;
@@ -102,7 +116,9 @@ a {
     position:relative;
     bottom:2px;
 }
+/*============END FIXING ARROWS ICONS=====================*/
 
+/*============START In template/index=====================*/
 .front-page {
     display: flex;
     flex-direction: row;
@@ -121,3 +137,4 @@ a {
     background-repeat: no-repeat;
     background-image: url('/img/patents_256x256px.jpg');
 }
+/*============END In template/index=====================*/

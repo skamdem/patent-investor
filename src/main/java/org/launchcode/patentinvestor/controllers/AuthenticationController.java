@@ -18,7 +18,7 @@ import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.util.Optional;
 
-import static org.launchcode.patentinvestor.controllers.AbstractBaseController.MESSAGE_KEY;
+import static org.launchcode.patentinvestor.controllers.AbstractBaseController.INFO_MESSAGE_KEY;
 
 /**
  * Created by kamdem
@@ -115,7 +115,7 @@ public class AuthenticationController {
             model.addAttribute("title", "Log In");
             return "login";
         }
-        redirectAttributes.addFlashAttribute(MESSAGE_KEY, "success|Welcome, " + loginFormDTO.getUsername());
+        redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "success|Welcome, " + loginFormDTO.getUsername());
         setUserInSession(request.getSession(), theUser);
         return "redirect:";
     }
@@ -125,7 +125,7 @@ public class AuthenticationController {
             HttpServletRequest request,
             RedirectAttributes redirectAttributes) {
         request.getSession().invalidate();
-        redirectAttributes.addFlashAttribute(MESSAGE_KEY, "info|You have logged out");
+        redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "info|You have logged out");
         return "redirect:/login";
     }
 }

@@ -20,7 +20,9 @@
 <!--START there are actual stocks to be displayed-->
 <div th:if="${stockPage != null} and ${stockPage.content.size() > 0}">
 
-    <div class="row" th:if="${tag == null}"><!--START display this if NOT viewing information specific to a given tag-->
+    <!--START display this if NOT viewing information specific to a given tag-->
+    <div class="row" th:if="${tag == null}">
+
         <!--START refresh button-->
         <div class="col-sm-12 col-md-4 merge-with-background">
             <div class="card mb-4 merge-with-background">
@@ -61,6 +63,7 @@
                 </p>
             </div>
         </div><!--END progression bar and explanatory text-->
+
     </div><!--END display this if NOT viewing information specific to a given tag-->
 
     <!--START display table-->
@@ -68,7 +71,8 @@
         <div class="col">
             <div class="table-responsive xl">
                 <table class="table table-borderless table-hover table-striped table-dark">
-                    <caption>List of stocks</caption>
+                    <caption th:if="${tag == null}">List of stocks</caption>
+                    <caption th:if="${tag != null}" th:text="'List of stocks for ' + ${tag.getDisplayName()}"></caption>
                     <thead class="thead-dark">
                     <th:block th:replace="fragments :: headerStocksRow"></th:block>
                     <!-- tr>

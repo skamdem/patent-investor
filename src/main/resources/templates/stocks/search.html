@@ -53,7 +53,9 @@
 
     <!--START Display search results-->
     <th:block th:if="${stockPage}">
+
         <h2 th:unless="${stockPage} and ${stockPage.content.size()}">No stocks were found!</h2>
+
         <th:block th:if="${stockPage.content.size()}">
             <h3 th:text="${listOfStocksFound.size()} + ' stocks found for \'' + ${searchTerm} + '\''">
             </h3>
@@ -61,6 +63,7 @@
                 <div class="col">
                     <div class="table-responsive xl">
                         <table class="table table-borderless table-hover table-striped table-dark">
+                            <caption th:text="'List of stocks search results for \'' + ${searchTerm} + '\''"></caption>
                             <thead class="thead-dark">
                             <th:block th:replace="fragments :: headerStocksRow"></th:block>
                             </thead>
@@ -73,8 +76,10 @@
                 </div>
             </div>
         </th:block>
+
     </th:block>
     <!--END Display search results-->
+
     <!--
     tickerUp    tickerDown
     corpUp    corpDown

@@ -5,8 +5,8 @@ package org.launchcode.patentinvestor.controllers;
  */
 public abstract class AbstractBaseController {
     //General messages
-    protected static final String MESSAGE_KEY = "message";
+    protected static final String INFO_MESSAGE_KEY = "message";
 
     //About deleted tags from stocks
-    protected static final String SECOND_MESSAGE_KEY = "secondMessage";
+    protected static final String ACTION_MESSAGE_KEY = "secondMessage";
 }

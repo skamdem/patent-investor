@@ -3,7 +3,6 @@ package org.launchcode.patentinvestor.controllers;
 import org.launchcode.patentinvestor.data.TagRepository;
 import org.launchcode.patentinvestor.models.Comparators;
 import org.launchcode.patentinvestor.models.PaginatedListingService;
-import org.launchcode.patentinvestor.models.Stock;
 import org.launchcode.patentinvestor.models.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -54,8 +53,8 @@ public class TagController extends AbstractBaseController {
 
         List<Tag> listOfTagsFound = (List<Tag>) tagRepository.findAll();
 
-        if (listOfTagsFound.size() == 0){
-            model.addAttribute(MESSAGE_KEY, "info|No investments were found! Click the 'create new field' button below to create one");
+        if (listOfTagsFound.size() == 0) {
+            model.addAttribute(INFO_MESSAGE_KEY, "info|No investment fields were found! Click the 'create new field' button below to create one");
         }
 
         switch (ordinarySortCriteria) {
@@ -95,7 +94,7 @@ public class TagController extends AbstractBaseController {
     @GetMapping("create")
     public String renderCreateTagForm(Model model) {
         model.addAttribute("title", "Create investment field");
-        model.addAttribute(MESSAGE_KEY, "info|'Investments fields' help categorize" +
+        model.addAttribute(INFO_MESSAGE_KEY, "info|'Investments fields' help categorize" +
                 " stocks. Keep the 'Field name' short, ideally a single word of less than 10 characters." +
                 " You may be more descriptive in the property 'Description of the investment field'.");
         model.addAttribute(new Tag());
@@ -111,11 +110,11 @@ public class TagController extends AbstractBaseController {
         if (errors.hasErrors()) {
             model.addAttribute("title", "Create tag (investment field)");
             model.addAttribute(tag);
-            model.addAttribute(MESSAGE_KEY, "danger|Failed to create a new investment field");
+            model.addAttribute(ACTION_MESSAGE_KEY, "danger|Failed to create a new investment field");
             return "tags/create";
         }
         tagRepository.save(tag);
-        redirectAttributes.addFlashAttribute(MESSAGE_KEY, "success|New investment field " + tag.getDisplayName() + " created");
+        redirectAttributes.addFlashAttribute(ACTION_MESSAGE_KEY, "success|New investment field " + tag.getDisplayName() + " created");
         return "redirect:/tags";
     }
 
@@ -130,7 +129,7 @@ public class TagController extends AbstractBaseController {
             }
         }
         model.addAttribute("tags", tags);
-        model.addAttribute(MESSAGE_KEY, "info|Only investment fields currently not set to any stock are listed. You may not delete any investment field currently tied to some stock");
+        model.addAttribute(INFO_MESSAGE_KEY, "info|Only investment fields currently not set to any stock are listed. You may not delete any investment field currently tied to some stock");
         return "tags/delete";
     }
 
@@ -143,14 +142,14 @@ public class TagController extends AbstractBaseController {
                 //tagRepository
                 tagRepository.deleteById(id);
             }
-            redirectAttributes.addFlashAttribute(MESSAGE_KEY, "success|" + tagIds.length + " investment field(s) deleted");
+            redirectAttributes.addFlashAttribute(ACTION_MESSAGE_KEY, "success|" + tagIds.length + " investment field(s) deleted");
             return "redirect:/tags";
         }
-        redirectAttributes.addFlashAttribute(MESSAGE_KEY, "info|No investment field deleted");
+        redirectAttributes.addFlashAttribute(ACTION_MESSAGE_KEY, "info|No investment field deleted");
         return "redirect:/tags";
     }
 
-    @GetMapping("view/{tagId}")
+    /*@GetMapping("view/{tagId}")
     public String displayTag(
             Model model,
             @PathVariable int tagId) {
@@ -160,13 +159,13 @@ public class TagController extends AbstractBaseController {
                 "Investment field " + tagName);
         model.addAttribute("theTag", tag);
         if (tag.getStocks().size() > 0) {
-            model.addAttribute(MESSAGE_KEY, "info|" +
+            model.addAttribute(INFO_MESSAGE_KEY, "info|" +
                     tag.getDisplayName() +
                     " is currently set to " +
                     tag.getStocks().size() + " stock(s).");
         }
         return "tags/view";
-    }
+    }*/
 
     @GetMapping("edit/{tagId}")
     public String displayEditForm(
@@ -178,7 +177,7 @@ public class TagController extends AbstractBaseController {
                 "Edit investment field " + tagName);
         model.addAttribute("theTag", tag);
         if (tag.getStocks().size() > 0) {
-            model.addAttribute(MESSAGE_KEY, "warning|" +
+            model.addAttribute(INFO_MESSAGE_KEY, "warning|" +
                     tag.getDisplayName() +
                     " is currently set to " +
                     tag.getStocks().size() + " stock(s) that would be affected");
@@ -197,7 +196,7 @@ public class TagController extends AbstractBaseController {
         tag.setDescription(description);
         tag.setName(name);
         tagRepository.save(tag);
-        redirectAttributes.addFlashAttribute(MESSAGE_KEY, "success|" + tag.getDisplayName() + " successfully edited");
+        redirectAttributes.addFlashAttribute(ACTION_MESSAGE_KEY, "success|" + tag.getDisplayName() + " successfully edited");
         return "redirect:/tags";
     }
 }
