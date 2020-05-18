@@ -32,19 +32,19 @@ public class User extends AbstractEntity {
     public User(String username, String password) {
         this.username = username;
         this.pwHash = encoder.encode(password);
-        this.portfolio = new Portfolio(Portfolio.DEFAULT_PRICE_IP_RATIO);
+        this.portfolio = new Portfolio();
+    }
+
+    public Portfolio getPortfolio() {
+        return portfolio;
+    }
+
+    public void setPortfolio(Portfolio portfolio) {
+        this.portfolio = portfolio;
     }
 
     public String getUsername() {
         return username;
-    }
-
-    public void setUserRatio(double priceIpRatio) {
-        this.portfolio.setPriceIpRatio(priceIpRatio);
-    }
-
-    public double getUserRatio() {
-        return this.portfolio.getPriceIpRatio();
     }
 
     public boolean isMatchingPassword(String password) {

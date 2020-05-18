@@ -3,65 +3,85 @@
 <head th:replace="fragments :: head"></head>
 <body class="container">
 <div th:replace="fragments :: header"></div>
-<div th:replace="fragments :: messages"></div>
 
-<div class="row">
-    <div class="col-sm-12 col-md-4 merge-with-background">
-        <div class="card mb-4 merge-with-background">
-            <div class="card-body text-left merge-with-background">
-                <h4 class="card-text">
-                    Net worth: $ <span th:style="'color:green'"
-                                       th:text="${#numbers.formatDecimal(netWorth, 1, 'COMMA', 2, 'POINT')}">
+<h2 th:unless="${stockPage} and ${stockPage.content.size()}">There are no stocks is your Portfolio!</h2>
+
+<th:block th:if="${stockPage.content.size() > 0}">
+
+    <div th:replace="fragments :: messages"></div>
+
+    <div class="row">
+        <div class="col-sm-12 col-md-4 merge-with-background">
+            <div class="card mb-4 merge-with-background">
+                <div class="text-left merge-with-background">
+                    <h4 class="card-text">
+                        Net worth: $ <span th:style="'color:green'"
+                                           th:text="${#numbers.formatDecimal(portfolio.getNetWorth(), 1, 'COMMA', 2, 'POINT')}">
                     0.0</span>
-                </h4>
+                    </h4>
+                </div>
+            </div>
+        </div>
+        <div class="col merge-with-background">
+            <div class="card merge-with-background">
+                <div class="text-right merge-with-background">
+                    <h4 class="card-text">
+                        <span th:if="${portfolio.getTotalNumberOfShares() == 0}"
+                              th:alt-title="'Nothing bought in your portfolio'">
+                            No actual shares in your portfolio
+                        </span>
+
+                        <th:block th:if="${portfolio.getTotalNumberOfShares() != 0}">
+                        <span th:style="'color:green'"
+                              th:text="${#numbers.formatDecimal(portfolio.getAdjustedPatents(), 1, 'COMMA', 2, 'POINT')}"
+                              th:alt-title="'Weighted number of patents by the shares for each stock'">0</span>
+                        adjusted patents
+                        </th:block>
+                        <br>
+                        <small>(<span th:style="'color:green'"
+                          th:text="${#numbers.formatDecimal(portfolio.getTotalNumberOfPatents(), 0, 'COMMA', 0, 'POINT')}">0</span>
+                        total patents)</small>
+                    </h4>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col merge-with-background">
-        <div class="card merge-with-background">
-            <div class="card-body text-right merge-with-background">
-                <h4 class="card-text">
-                    <span th:style="'color:green'"
-                          th:text="${#numbers.formatDecimal(aggregatedPatents, 0, 'COMMA', 0, 'POINT')}">0</span>
-                    aggregated patents registered
-                </h4>
+    <div class="row">
+        <!-- p>Your portfolio currently contains <span th:text="${stockPage.getTotalPages()}"></span> stocks</p -->
+        <!--p>Click on the number of shares to adjust it for each stock</p-->
+        <br>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="table-responsive xl">
+                <table class="table table-borderless table-hover table-striped table-dark">
+                    <caption>List of stocks in my portfolio</caption>
+                    <thead class="thead-dark">
+                    <th:block th:replace="fragments :: headerStocksRow"></th:block>
+                    <!-- tr>
+                        <th>Ticker</th>
+
+                        <th># of shares</th>    [My portfolio]
+                        <th>% on portfolio</th> [My portfolio]
+
+                        <th>Last Price</th>
+                        <th>Patents Portfolio</th>
+
+                        <th>Track stock</th>     [Divest stock]
+                    </tr -->
+                    </thead>
+                    <tbody id="confirmDeletion">
+                    <th:block th:replace="fragments :: listingResults"></th:block>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-</div>
-<div class="row">
-    <!-- p>Your portfolio currently contains <span th:text="${stockPage.getTotalPages()}"></span> stocks</p -->
-    <!--p>Click on the number of shares to adjust it for each stock</p-->
-    <br>
-</div>
-<div class="row">
-    <div class="col">
-        <div class="table-responsive xl">
-            <table class="table table-borderless table-hover table-striped table-dark">
-                <caption>List of stocks in my portfolio</caption>
-                <thead class="thead-dark">
-                <th:block th:replace="fragments :: headerStocksRow"></th:block>
-                <!-- tr>
-                    <th>Ticker</th>
+    <script type="text/javascript"
+            th:src="@{/removalFromPortfolio.js}"></script>
+    <th:block th:replace="fragments :: listingResultsPagination"></th:block>
 
-                    <th># of shares</th>    [My portfolio]
-                    <th>% on portfolio</th> [My portfolio]
-
-                    <th>Last Price</th>
-                    <th>Patents Portfolio</th>
-
-                    <th>Track stock</th>     [Divest stock]
-                </tr -->
-                </thead>
-                <tbody>
-                <th:block th:replace="fragments :: listingResults"></th:block>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-
-<th:block th:replace="fragments :: listingResultsPagination"></th:block>
+</th:block>
 
 <div th:insert="fragments :: footer"></div>
 </body>

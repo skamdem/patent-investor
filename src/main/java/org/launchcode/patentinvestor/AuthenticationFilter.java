@@ -15,6 +15,7 @@ import java.util.List;
 
 /**
  * Created by kamdem
+ * For preventing access to certain paths
  */
 public class AuthenticationFilter extends HandlerInterceptorAdapter {
 
@@ -28,7 +29,7 @@ public class AuthenticationFilter extends HandlerInterceptorAdapter {
      * List of URLs that shall proceed without authentication
      */
     private static final List<String> whitelist = Arrays.asList(
-            "/login", "/register", "/logout",
+            "/login", "/register", "/logout", "/stocks","/",
             "/webjars/bootstrap/4.4.1-1/css/bootstrap.min.css",
             "/img/stock_icon_128_128.png",
             "/img/stock_market_icon_96x96px.png",
@@ -42,8 +43,8 @@ public class AuthenticationFilter extends HandlerInterceptorAdapter {
                 return true;
             }
         }
-        return true;
-        //return false;
+        //return true;
+        return false;
     }
 
     @Override
@@ -51,6 +52,7 @@ public class AuthenticationFilter extends HandlerInterceptorAdapter {
             HttpServletRequest request,
             HttpServletResponse response,
             Object handler) throws IOException {
+
         // Don't require sign-in for whitelisted pages
         if (isWhitelisted(request.getRequestURI())) {
             // returning true indicates that the request may proceed

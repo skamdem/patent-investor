@@ -23,10 +23,18 @@
     </table>
     <div class="form-group">
         <input type="submit"
+               id="confirmDeletion"
                value="Delete Tag"
-               class="btn btn-danger">
+               class="btn btn-danger deletion">
+        <a  th:href="@{${'/tags'}}"
+            class="btn btn-success">
+            Cancel
+        </a>
     </div>
 </form>
+
+<script type="text/javascript"
+        th:src="@{/confirmDeletion.js}"></script>
 
 <div th:insert="fragments :: footer"></div>
 

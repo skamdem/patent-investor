@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org/">
-
 <head th:replace="fragments :: head"></head>
 
 <body class="container">
-<!-- header th:replace="fragments :: header"></header -->
 
-<div style="margin-top:150px">
+<div th:replace="fragments :: header"></div>
+<div th:replace="fragments :: messages"></div>
+
+<!--div style="margin-top:150px">
     <h1 th:text="${title}+' | Patent Investor'">Patent Investor</h1>
-</div>
+</div-->
 
 <form method="post">
     <div class="form-group">
@@ -45,7 +46,7 @@
     <a href="/login">Log in instead.</a>
 </p>
 
-<!-- div th:insert="fragments :: footer"></div -->
+<footer th:replace="fragments :: footer"></footer>
 
 </body>
 </html>

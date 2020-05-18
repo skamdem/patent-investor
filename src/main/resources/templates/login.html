@@ -4,11 +4,12 @@
 
 <body class="container">
 
+<div th:replace="fragments :: header"></div>
 <div th:replace="fragments :: messages"></div>
 
-<div style="margin-top:150px">
+<!--div style="margin-top:150px">
     <h1 th:text="${title}+' | Patent Investor'">Patent Investor</h1>
-</div>
+</div-->
 
 <form method="post" th:action="@{/login}">
     <div class="form-group">
@@ -46,6 +47,8 @@
 <p>Don't have an account?
     <a href="/register">Register for one.</a>
 </p>
+
+<footer th:replace="fragments :: footer"></footer>
 
 </body>
 </html>

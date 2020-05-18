@@ -8,7 +8,7 @@
 <div class="row">
     <div class="col-sm-12 col-md-4 merge-with-background">
         <div class="card mb-4 merge-with-background">
-            <div class="card-body text-left merge-with-background">
+            <div class="text-left merge-with-background">
                 <h4 class="card-text">
                     $ <span th:style="'color:green'"
                             th:text="${#numbers.formatDecimal(weightedPrice, 0, 'COMMA', 2, 'POINT')}">
@@ -28,7 +28,7 @@
     </div>
     <div class="col merge-with-background">
         <div class="card merge-with-background">
-            <div class="card-body text-right merge-with-background">
+            <div class="text-right merge-with-background">
                 <h4 class="card-text">
                     <span th:style="'color:green'"
                           th:text="${#numbers.formatDecimal(aggregatedPatents, 0, 'COMMA', 0, 'POINT')}">
@@ -52,7 +52,7 @@
         the 30 most patented companies.
         It measures the stock performance of 30 companies listed on stock exchanges in the United States that hold the
         largest number of patents portfolio.
-        Other popular stock indexes for other purposes include: S&P500, DJIA, IXIC etc.
+        IP30 is a challenger for other popular stock indexes covering other purposes including: S&P500, DJIA, IXIC etc.
     </div>
     <p>Below is a list of the companies currently making up IP30 ranked in descending order by the size of the patents portfolio</p>
     <br>

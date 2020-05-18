@@ -7,23 +7,19 @@
 <div th:replace="fragments :: header"></div>
 <div th:replace="fragments :: messages"></div>
 
-<div class="container body-content">
-
-    <div class="front-page">
-        <div class="badger">
-            <ul>
-                <li th:each="action : ${actions}">
-                    <a th:href="@{'/' + ${action.key}}"
-                       th:text="${action.value}">
-                    </a>
-                </li>
-            </ul>
-        </div>
-        <div class="badger badger-right">
-
-        </div>
+<div class="front-page">
+    <div class="badger">
+        <ul>
+            <li th:each="action : ${actions}">
+                <a th:href="@{'/' + ${action.key}}"
+                   th:text="${action.value}">
+                </a>
+            </li>
+        </ul>
     </div>
+    <div class="badger badger-right">
 
+    </div>
 </div>
 
 <footer th:replace="fragments :: footer"></footer>

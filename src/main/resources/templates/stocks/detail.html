@@ -8,7 +8,7 @@
 <div class="row">
     <div class="col-sm-12 col-md-4 merge-with-background">
         <div class="card mb-4 merge-with-background">
-            <div class="card-body text-left merge-with-background">
+            <div class="text-left merge-with-background">
                 <h4 class="card-text">
                     $ <span th:style="'color:green'"
                             th:text="${stock.stockDetails.latestPrice}">0</span>
@@ -21,10 +21,11 @@
     </div>
     <div class="col merge-with-background">
         <div class="card merge-with-background">
-            <div class="card-body text-right merge-with-background">
+            <div class="text-right merge-with-background">
                 <h4 class="card-text">
                     <span th:style="'color:green'"
-                          th:text="${#numbers.formatDecimal(stock.stockDetails.getTotalNumberOfPatents(), 0, 'COMMA', 0, 'POINT')}">0</span> patents registered
+                          th:text="${#numbers.formatDecimal(stock.stockDetails.getTotalNumberOfPatents(), 0, 'COMMA', 0, 'POINT')}">0</span>
+                    patents registered
                 </h4>
                 <p class="card-text">
                     Last update : <span th:text="${stock.stockDetails.getLastUsptoApiUpdate()}"></span>
@@ -52,7 +53,6 @@
     <br>
 </div>
 
-<!--table class="table table-striped"-->
 <table class="table table-borderless table-hover table-striped table-dark">
     <tr>
         <th>Full name of company :</th>
@@ -94,18 +94,14 @@
         </tr>
     </th:block>
 
-    <!-- tr>
-        <th>Location :</th>
-        <td th:text="${stock.getStockDetails().getForeignCode().getDisplayName()}"></td>
-    </tr -->
-    <tr>
+    <tr th:if="${isLoggedIn != null}">
         <th>List of tags :</th>
         <td>
-            <span th:unless="${stock.tags.size()} > 0"
+            <span th:unless="${relevantTags.size()} > 0"
                   th:text="'No tag set for this stock'"
             ></span>
-            <th:block th:if="${stock.getTags().size()>=1}">
-                <th:block th:each="tag : ${stock.getTags()}">
+            <th:block th:if="${relevantTags.size()>=1}">
+                <th:block th:each="tag : ${relevantTags}">
                     <a th:text="${tag.getDisplayName()} + ' '"
                        th:alt-title="'View details of ' + ${tag.getDisplayName()}"
                        th:href="'/stocks/?tagId='+${tag.id}">
@@ -117,32 +113,37 @@
             </th:block>
         </td>
     </tr>
-    <tr th:if="${stock.getStockDetails().isInPortfolio()}">
+    <tr th:if="${(isLoggedIn != null) and (inPortfolio != null)}">
         <th>Number of shares in portfolio :</th>
-        <td th:text="${stock.getStockDetails().getNumberOfShares()}"></td>
+        <td th:text="${numberOfShares}"></td>
     </tr>
 </table>
 
-<a th:unless="${stock.getStockDetails().isInPortfolio()}"
-   th:href="@{${'/stocks/add-to-portfolio/'+stock.id}}"
-   th:alt-title="'Add ' + ${stock.ticker} + ' to portfolio'"
-   class="btn btn-success mb-3">
-    Add to portfolio
-</a>
+<th:block th:if="${isLoggedIn != null}">
 
-<a th:unless="${stock.getTags().size() >= 3}"
-   th:href="@{${'/stocks/add-tag/'+stock.id}}"
-   th:alt-title="'Add an investment field to ' + ${stock.ticker}"
-   class="btn btn-success mb-3">
-    Add tag
-</a>
+    <a th:if="${inPortfolio == null}"
+       th:href="@{${'/stocks/add-to-portfolio/'+stock.id}}"
+       th:alt-title="'Add ' + ${stock.ticker} + ' to portfolio'"
+       class="btn btn-success mb-3">
+        Add to portfolio
+    </a>
 
-<a th:unless="${stock.getTags().size() < 1}"
-   th:href="@{${'/stocks/remove-tag/'+stock.id}}"
-   th:alt-title="'Remove an investment field from ' + ${stock.ticker}"
-   class="btn btn-success mb-3">
-    Remove tag
-</a>
+    <a th:unless="${stock.getTags().size() >= MAX_NUMBER_OF_TAGS}"
+       th:href="@{${'/stocks/add-tag/'+stock.id}}"
+       th:alt-title="'Add an investment field to ' + ${stock.ticker}"
+       class="btn btn-success mb-3">
+        Add tag
+    </a>
+
+    <a th:unless="${relevantTags.size() < 1}"
+       th:href="@{${'/stocks/remove-tag/'+stock.id}}"
+       th:alt-title="'Remove an investment field from ' + ${stock.ticker}"
+       class="btn btn-success mb-3">
+        Remove tag
+    </a>
+
+</th:block>
+
 <div th:insert="fragments :: footer"></div>
 </body>
 </html>

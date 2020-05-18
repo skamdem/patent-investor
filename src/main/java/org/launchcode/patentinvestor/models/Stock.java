@@ -23,15 +23,18 @@ public class Stock extends AbstractEntity {
     @NotNull
     private StockDetails stockDetails;
 
-    @ManyToMany
-    @JoinTable(name = "STOCK_TAGS")
-    private final List<Tag> tags = new ArrayList<>();
+    @OneToMany(mappedBy = "stock")
+    private List<StockShare> stockShare = new ArrayList<>();
 
     @NotBlank(message = "usptoId is required")
     private String usptoId;
 
     @NotBlank(message = "iexId is required")
     private String iexId;
+
+    @ManyToMany
+    @JoinTable(name = "STOCK_TAGS")
+    private final List<Tag> tags = new ArrayList<>();
 
     public Stock(String ticker, String usptoId, String iexIid) {
         this.ticker = ticker;
@@ -82,8 +85,13 @@ public class Stock extends AbstractEntity {
         this.iexId = iexId;
     }
 
+    public List<StockShare> getStockShare() {
+        return stockShare;
+    }
+
     @Override
     public String toString() {
         return ticker;
     }
+
 }

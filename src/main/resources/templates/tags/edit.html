@@ -15,6 +15,8 @@
                    th:value="${theTag.name}"
                    class="form-control">
         </label>
+        <!--p th:errors="${theTag.name}"
+           class="error"></p-->
     </div>
     <div class="form-group">
         <label>Description of the investment field
@@ -22,6 +24,8 @@
                       class="form-control">
             </textarea>
         </label>
+        <!--p class="error"
+           th:errors="${theTag.description}"></p-->
     </div>
     <input type="hidden"
            th:value="${theTag.id}"
@@ -29,7 +33,11 @@
     <div class="form-group">
         <input type="submit"
                value="Save investment field"
-               class="btn btn-success">
+               class="btn btn-warning">
+        <a  th:href="@{${'/tags'}}"
+            class="btn btn-success">
+            Cancel
+        </a>
     </div>
 </form>
 

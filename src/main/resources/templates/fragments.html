@@ -1,32 +1,28 @@
 <!DOCTYPE html>
 <html lang="en"
       xmlns:th="http://www.thymeleaf.org/"
-      xmlns:sec="http://www.w3.org/1999/xhtml">
-
+>
 <head th:fragment="head">
     <meta charset="UTF-8"/>
     <meta name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
-
-    <title th:text="${title} +' | Patent Investor'"></title>
-
-    <!-- link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" -->
     <link rel="stylesheet"
           type="text/css"
           th:href="@{/webjars/bootstrap/4.4.1-1/css/bootstrap.min.css}"/>
+    <!-- link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" -->
     <link rel="stylesheet"
           type="text/css"
           th:href="@{/styles.css}"/>
     <link rel="stylesheet"
           type="text/css"
           th:href="@{/pagination.css}"/>
-
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <!-- script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/feather-icons"></script>
+    <!-- script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script -->
     <!--script type="text/javascript" th:src="@{/pagination.js}"></script-->
-    <script type="text/javascript" th:src="@{/apiDownloadProgressBar.js}"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://use.fontawesome.com/releases/v5.13.0/js/all.js" data-auto-replace-svg="nest"></script>
+    <title th:text="${title} +' | Patent Investor'"></title>
 </head>
 
 <body>
@@ -53,10 +49,8 @@
 
         <div class="collapse navbar-collapse"
              id="navbarSupportedContent">
-            <ul class="navbar-nav mr-auto"
-                sec:authorize="isAuthenticated()">
+            <ul class="navbar-nav mr-auto">
                 <!--ul class="navbar-nav mr-auto" th:if="${#authorization.expression('isAuthenticated()')}"-->
-                <!--This content is only shown to authenticated users-->
                 <li class="nav-item">
                     <a class="nav-link"
                        th:href="@{/stocks/search}">
@@ -69,6 +63,7 @@
                         All Stocks
                     </a>
                 </li>
+
                 <li class="nav-item">
                     <a class="nav-link"
                        th:href="@{/tags}">
@@ -81,11 +76,15 @@
                         Portfolio
                     </a>
                 </li>
+
             </ul>
             <ul class="navbar-nav ml-auto">
-                <!--li class="nav-item" th:if="${#authorization.expression('isAuthenticated()')}"-->
-                <li class="nav-item"
-                    sec:authorize="isAuthenticated()">
+                <!--li class="nav-item" th:if="${#authorization.expression('isAuthenticated()')}"
+                sec:authorize="isAnonymous()"
+                sec:authorize="isAuthenticated()"
+                -->
+                <li th:if="${isLoggedIn != null}"
+                    class="nav-item">
                     <form th:action="@{/logout}"
                           method="post"
                           name="logoutForm">
@@ -93,11 +92,20 @@
                     <a class="nav-link"
                        href="#"
                        onclick="document.logoutForm.submit()">
-                        <i class="fas fa-sign-out-alt"></i>Log Out</a>
+                        <i class="fas fa-sign-out-alt"></i>
+                        Log Out</a>
                 </li>
+                <li th:if="${isLoggedIn == null}"
+                    class="nav-item">
+                    <a class="nav-link"
+                       th:href="@{/login}">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Log In</a>
+                </li>
+
                 <!--li class="nav-item" th:if="${#authorization.expression('!isAuthenticated()')}"-->
-                <li class="nav-item"
-                    sec:authorize="isAuthenticated()">
+                <li th:if="${isLoggedIn == null}"
+                    class="nav-item">
                     <a class="nav-link"
                        th:href="@{/register}">
                         <i class="fas fa-user"></i>
@@ -116,13 +124,17 @@
     </h1>
 </header>
 
-<div th:fragment="messages" class="container">
+<div th:fragment="messages">
     <div th:if="${message != null}"
          th:with="parts=${#strings.arraySplit(message, '|')}"
          th:attr="class=${'alert alert-dismissible alert-' + parts[0]}"
          role="alert">
-        <button type="button" class="close" data-dismiss="alert">&times;</button>
-        <div th:text="${parts[1]}"></div>
+        <button type="button"
+                class="close"
+                data-dismiss="alert">
+            &times;
+        </button>
+        <div th:utext="${parts[1]}"></div>
     </div>
 
     <div th:if="${secondMessage != null}"
@@ -134,7 +146,7 @@
                 data-dismiss="alert">
             &times;
         </button>
-        <div th:text="${parts[1]}"></div>
+        <div th:utext="${parts[1]}"></div>
     </div>
 </div>
 
@@ -203,7 +215,7 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
         </th>
 
         <!-- Begin optional section for portfolio page-->
-        <th:block th:if="${netWorth != null}">
+        <th:block th:if="${portfolioPage != null}">
             <th>
                 <div class="flex-sort-group">
                     <div>
@@ -324,7 +336,7 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
             </div>
         </th>
         <!-- Begin optional section for portfolio page-->
-        <th:block th:if="${netWorth != null}">
+        <th:block th:if="${portfolioPage != null}">
             <th>
                 <div class="flex-sort-group">
                     <div>
@@ -345,10 +357,10 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
         <th>
             <div class="flex-sort-group">
                 <div>
-                    <span th:unless="${netWorth != null}"
+                    <span th:unless="${portfolioPage != null}"
                           th:text="'Track '">
                     </span>
-                    <span th:if="${netWorth != null}"
+                    <span th:if="${portfolioPage != null}"
                           th:text="'Divest '">
                     </span>
                     &nbsp;stock
@@ -382,19 +394,19 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
         </td>
 
         <!-- Begin optional section for portfolio page-->
-        <th:block th:if="${netWorth != null}">
+        <th:block th:if="${portfolioPage != null}">
             <td>
                 <a th:alt-title="'Adjust number of shares  of ' + ${{stock.ticker}}"
                    th:href="@{${'/stocks/adjust-shares-portfolio/'+stock.id}}">
-                    <span th:text="${stock.stockDetails.getNumberOfShares()}">
+                    <span th:text="${portfolio.getRelevantNumberOfShares(stock)}">
                     </span>
                 </a>
             </td>
             <td>
-                <span th:if="${netWorth != 0.0}"
-                      th:text="${#numbers.formatDecimal((stock.stockDetails.getNumberOfShares()*stock.stockDetails.latestPrice)*100 / netWorth, 2, 'COMMA', 2, 'POINT')} + ' %'">
+                <span th:if="${portfolio.getNetWorth() != 0.0}"
+                      th:text="${#numbers.formatDecimal((portfolio.getRelevantNumberOfShares(stock)*stock.stockDetails.latestPrice)*100 / portfolio.getNetWorth(), 2, 'COMMA', 2, 'POINT')} + ' %'">
                 </span>
-                <span th:if="${netWorth == 0.0}"
+                <span th:if="${portfolio.getNetWorth() == 0.0}"
                       th:alt-title="'Nothing bought in your portfolio'">
                     n\a
                 </span>
@@ -418,7 +430,7 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
         </td>
 
         <!-- Begin optional section for portfolio page-->
-        <td th:if="${netWorth != null}">
+        <td th:if="${portfolioPage != null}">
             <span th:unless="${stock.tags.size()} > 0"
                   th:text="'No tags found'"
             ></span>
@@ -438,33 +450,61 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
         <!-- End optional section for portfolio page-->
 
         <td>
-            <!-- Display this if OUTSIDE portfolio page -->
-            <th:block th:if="${netWorth == null}">
-                <a th:if="${stock.getStockDetails().isInPortfolio()}"
-                   href="#"
-                   th:alt-title="${stock.ticker} + ' is already in your portfolio'"
-                   class="btn btn-info mb-3 disabled"
+            <!--Start LOGGED IN-->
+            <div th:if="${isLoggedIn != null}">
+                <!-- Display this if OUTSIDE portfolio page -->
+                <th:block th:if="${portfolioPage == null}">
+                    <a th:if="${portfolio.contains(stock)}"
+                       href="#"
+                       th:alt-title="${stock.ticker} + ' is already in your portfolio'"
+                       class="btn btn-info mb-3 disabled"
+                       role="button"
+                       aria-disabled="true">
+                        Already in portfolio
+                    </a>
+                    <a th:unless="${portfolio.contains(stock)}"
+                       th:href="@{${'/stocks/add-to-portfolio/'+stock.id}}"
+                       th:alt-title="'Add ' + ${stock.ticker} + ' to portfolio'"
+                       class="btn btn-success mb-3">
+                        Add to portfolio
+                    </a>
+                </th:block>
+
+                <!-- Display this if inside portfolio page -->
+                <th:block th:if="${portfolioPage != null}">
+                    <a th:href="@{${'/stocks/remove-from-portfolio/'+stock.id}}"
+                       th:alt-title="'Remove ' + ${stock.ticker} + ' from portfolio'"
+                       class="btn btn-warning btn-sm remove-pf">
+                        remove from portfolio
+                    </a>
+                </th:block>
+            </div>
+            <!--End LOGGED IN-->
+
+            <!--Start NOT LOGGED IN-->
+            <div th:if="${isLoggedIn == null}">
+                <a href="#"
+                   th:alt-title="'Add ' + ${stock.ticker} + ' to portfolio'"
+                   class="btn btn-info mb-3"
+                   onclick="alert('You must be logged in to perform this operation')"
                    role="button"
                    aria-disabled="true">
-                    Already in portfolio
-                </a>
-                <a th:unless="${stock.getStockDetails().isInPortfolio()}"
-                   th:href="@{${'/stocks/add-to-portfolio/'+stock.id}}"
-                   th:alt-title="'Add ' + ${stock.ticker} + ' to portfolio'"
-                   class="btn btn-success mb-3">
                     Add to portfolio
                 </a>
-            </th:block>
+            </div>
+            <!--End NOT LOGGED IN-->
 
-            <!-- Display this if inside portfolio page -->
-            <th:block th:if="${netWorth != null}">
-                <a th:if="${stock.getStockDetails().isInPortfolio()}"
-                   th:href="@{${'/stocks/remove-from-portfolio/'+stock.id}}"
-                   th:alt-title="'Remove ' + ${stock.ticker} + ' from portfolio'"
-                   class="btn btn-warning btn-sm">
-                    remove from portfolio
-                </a>
-            </th:block>
+            <!--div sec:authorize="#{!isFullyAuthenticated()}"-->
+            <!--NOT LOGGED IN-->
+            <!--a th:href="#"
+               th:alt-title="'Add ' + ${stock.ticker} + ' to portfolio'"
+               class="btn btn-info mb-3 disabled"
+               role="button"
+               onclick="alert('You may not perform this operation because you are not logged in!')"
+               aria-disabled="true">
+                Add to portfolio
+            </a>
+        </div-->
         </td>
     </tr>
 </th:block>
@@ -503,4 +543,5 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
 </footer>
 
 </body>
+
 </html>

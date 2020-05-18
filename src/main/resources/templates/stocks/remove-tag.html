@@ -5,32 +5,37 @@
 <div th:replace="fragments :: header"></div>
 <div th:replace="fragments :: messages"></div>
 
-<div class="container body-content">
-    <form method="post"
-          action="/stocks/remove-tag">
-        <table class="table table-striped">
-            <tr th:each="tag : ${tags}">
-                <td>
-                    <span th:text="'#'+${tag.name}"></span>
-                </td>
-                <td>
-                    <input type="checkbox"
-                           name="tagIds"
-                           th:value="${tag.id}"
-                           class="form-control">
-                </td>
-            </tr>
-        </table>
-        <div class="form-group">
-            <input type="hidden"
-                   th:value="${stockId}"
-                   name="stockId" />
-            <input type="submit"
-                   value="Remove Tag(s)"
-                   class="btn btn-danger">
-        </div>
-    </form>
-</div>
+<form method="post"
+      action="/stocks/remove-tag">
+    <table class="table table-striped">
+        <tr th:each="tag : ${tags}">
+            <td>
+                <span th:text="'#'+${tag.name}"></span>
+            </td>
+            <td>
+                <input type="checkbox"
+                       name="tagIds"
+                       th:value="${tag.id}"
+                       class="form-control">
+            </td>
+        </tr>
+    </table>
+    <div class="form-group">
+        <input type="hidden"
+               th:value="${stockId}"
+               name="stockId"/>
+        <input type="submit"
+               id="confirmDeletion"
+               value="Remove Tag(s)"
+               class="btn btn-danger deletion">
+        <a th:href="@{${'/stocks/detail/'+stockId}}"
+           class="btn btn-success">
+            Cancel
+        </a>
+    </div>
+</form>
+<script type="text/javascript"
+        th:src="@{/confirmDeletion.js}"></script>
 
 <div th:insert="fragments :: footer"></div>
 

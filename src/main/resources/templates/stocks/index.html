@@ -8,12 +8,12 @@
 <div th:replace="fragments :: messages"></div>
 
 <!--START display this if viewing information specific to a given tag-->
-<div class="row"
-     th:if="${tag != null}">
+<div th:if="${tag != null}">
     <h6 th:text="'Description of ' + ${tag.getDisplayName()} + ':&nbsp;'"
         th:style="'display:block'">
     </h6>
     <div th:text="' ' + ${tag.getDescription()}"></div>
+    <br>
 </div>
 <!--END display this if viewing information specific to a given tag-->
 
@@ -26,11 +26,22 @@
         <!--START refresh button-->
         <div class="col-sm-12 col-md-4 merge-with-background">
             <div class="card mb-4 merge-with-background">
-                <div class="card-body text-left merge-with-background">
-                    <a th:href="@{${'/stocks/callAPIs'}}"
+                <div class="">
+                    <a th:if="${isLoggedIn != null}"
+                       th:href="@{${'/stocks/callAPIs'}}"
+                       th:alt-title="'Query API to refresh stocks data'"
+                       class="btn btn-success mb-3"
+                       id="refresh-button"
+                    >
+                        Refresh stock data
+                    </a>
+                    <a th:if="${isLoggedIn == null}"
+                       href="#"
                        th:alt-title="'Query API to refresh stocks data'"
                        class="btn btn-info mb-3"
-                       id="refresh-button"
+                       onclick="alert('You must be logged in to perform this operation')"
+                       role="button"
+                       aria-disabled="true"
                     >
                         Refresh stock data
                     </a>
@@ -40,10 +51,11 @@
         <!--END refresh button-->
 
         <!--START progression bar and explanatory text-->
-        <div class="col-sm-12 col-md-8 merge-with-background">
-            <div id="progressionBar"
-                 class="progress"
-                 th:style="'border:1px solid blue; visibility : hidden; width:80%'">
+        <div id="progressionBar"
+             class="col-sm-12 col-md-8 merge-with-background"
+             style="display:none">
+            <div class="progress"
+                 th:style="'border:1px solid blue; width:95%'">
                 <div id="dynamic"
                      class="progress-bar progress-bar-success progress-bar-striped progress-bar-animated"
                      role="progressbar"
@@ -54,8 +66,7 @@
                 ><!--span id="current-progress"></span-->
                 </div>
             </div>
-            <div id="progressionText"
-                 style="visibility : hidden; margin-top: 10px;">
+            <div style="margin-top: 10px;">
                 <p>
                     Currently running API calls to refill the entire database with the latest stock data.
                     <br>Do not navigate away from this page.
@@ -63,7 +74,7 @@
                 </p>
             </div>
         </div><!--END progression bar and explanatory text-->
-
+        <script type="text/javascript" th:src="@{/apiDownloadProgressBar.js}"></script>
     </div><!--END display this if NOT viewing information specific to a given tag-->
 
     <!--START display table-->

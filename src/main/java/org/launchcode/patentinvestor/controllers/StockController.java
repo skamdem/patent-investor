@@ -4,7 +4,9 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.launchcode.patentinvestor.data.StockRepository;
+import org.launchcode.patentinvestor.data.StockShareRepository;
 import org.launchcode.patentinvestor.data.TagRepository;
+import org.launchcode.patentinvestor.models.Comparators;
 import org.launchcode.patentinvestor.models.*;
 import org.launchcode.patentinvestor.models.dto.StockTagDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,16 +22,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static org.launchcode.patentinvestor.controllers.HomeController.*;
 import static org.launchcode.patentinvestor.models.ApiData.*;
 
 /**
@@ -37,23 +38,40 @@ import static org.launchcode.patentinvestor.models.ApiData.*;
  */
 @Controller
 @RequestMapping("stocks")
-public class StockController extends AbstractBaseController {
+public class StockController {
 
-    List<Stock> listOfStocksFound;
+    //General messages
+    private final String INFO_MESSAGE_KEY = "message";
+
+    //Number of tags per stock
+    private final int MAX_NUMBER_OF_TAGS = 3;
+
+    //About deleted tags from stocks
+    private final String ACTION_MESSAGE_KEY = "secondMessage";
+
+    List<Stock> listOfStocksFoundInSearch;
+    List<Stock> listOfStocksFoundInStocksListing;
 
     //used for pagination
     static final int numberOfItemsPerPage = 10;
 
     static final String baseColor = "white";
     static final String selectedColor = "green";
-    static String ordinarySortCriteria = "";
-    static String inPortfolioSortCriteria = "";
     static String searchDestinationUrl = "/stocks/searchResults";
+
+    String sortCriteriaInSearch = "";
+    String sortCriteriaInStocksListings = "";
+    String sortCriteriaInPortfolio = "";
 
     //Helps view download progress
     int numberOfUsptoItemsDownloaded = 0;
     int numberOfIexItemsDownloaded = 0;
-    int globalSize = 1;// initialize to 1 in order to prevent division by zero
+
+    /**
+     * initialize to 1 in order to prevent division by zero
+     * divisor to compute percentage
+     */
+    int globalSize = 1;
 
     //In page to search a stock
     static HashMap<String, String> columnChoices = new HashMap<>();
@@ -86,7 +104,16 @@ public class StockController extends AbstractBaseController {
     private TagRepository tagRepository;
 
     @Autowired
+    private StockShareRepository stockShareRepository;
+
+    @Autowired
     private PaginatedListingService<Stock> paginatedListingService;
+
+    @Autowired
+    private PaginatedListingService<Stock> subTypePaginatedListingService;
+
+    @Autowired
+    AuthenticationController authenticationController;
 
     /**
      * Display initial empty "Stock search form"
@@ -94,7 +121,15 @@ public class StockController extends AbstractBaseController {
      * This method returns at URL /stocks/search
      */
     @RequestMapping(value = "search", method = RequestMethod.GET)
-    public String displaySearchForm(Model model) {
+    public String displaySearchForm(
+            Model model,
+            HttpServletRequest request) {
+
+        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+        if (loggedInUser != null) {//user is logged in
+            model.addAttribute("isLoggedIn", true);
+        }
+
         model.addAttribute("searchDestinationUrl", searchDestinationUrl);
         model.addAttribute("columns", columnChoices);
         model.addAttribute("title", "Search stock");
@@ -113,6 +148,13 @@ public class StockController extends AbstractBaseController {
      * stockPage, pageNumbers, currentPage, paginationDestinationUrl
      * <p>
      * This method returns at URL /stocks/search
+     *
+     * @param searchTerm
+     * @param searchType
+     * @param model
+     * @param page
+     * @param size
+     * @return
      */
     //@PostMapping(value = "searchResults")
     @RequestMapping(value = "searchResults", method = {RequestMethod.GET, RequestMethod.POST})
@@ -121,7 +163,15 @@ public class StockController extends AbstractBaseController {
             @RequestParam(required = false) String searchType,
             Model model,
             @RequestParam("page") Optional<Integer> page,
-            @RequestParam("size") Optional<Integer> size) {
+            @RequestParam("size") Optional<Integer> size,
+            HttpServletRequest request) {
+
+        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+        if (loggedInUser != null) {//user is logged in
+            model.addAttribute("isLoggedIn", true);
+            model.addAttribute("portfolio", loggedInUser.getPortfolio());
+        }
+
         int currentPage = page.orElse(1);
         int pageSize = size.orElse(numberOfItemsPerPage);
 
@@ -133,7 +183,7 @@ public class StockController extends AbstractBaseController {
         }
 
         model.addAttribute("baseColor", baseColor);
-        model.addAttribute("sortIcon", ordinarySortCriteria);
+        model.addAttribute("sortIcon", sortCriteriaInSearch);
         model.addAttribute("selectedColor", selectedColor);
         model.addAttribute("iconsDestinationUrl", iconsDestinationUrl);
         model.addAttribute("searchDestinationUrl", searchDestinationUrl);
@@ -144,9 +194,9 @@ public class StockController extends AbstractBaseController {
             if (searchTerm.toLowerCase().equals("all") || searchTerm == "") {
                 //Release ALL stocks
                 model.addAttribute("title", "All Stocks");
-                listOfStocksFound = new ArrayList<Stock>((List<Stock>) stockRepository.findAll());
+                listOfStocksFoundInSearch = new ArrayList<Stock>((List<Stock>) stockRepository.findAll());
             } else {
-                listOfStocksFound = StockData.findByColumnAndValue(searchType, searchTerm, (List<Stock>) stockRepository.findAll());
+                listOfStocksFoundInSearch = StockData.findByColumnAndValue(searchType, searchTerm, (List<Stock>) stockRepository.findAll());
             }
         }
 
@@ -155,8 +205,8 @@ public class StockController extends AbstractBaseController {
         model.addAttribute("searchType", searchType);
         model.addAttribute("searchTerm", searchTerm);
 
-        model.addAttribute("listOfStocksFound", listOfStocksFound);
-        paginatedListingService.setListOfItems(listOfStocksFound);
+        model.addAttribute("listOfStocksFound", listOfStocksFoundInSearch);
+        paginatedListingService.setListOfItems(listOfStocksFoundInSearch);
 
         //used to display the form in search.html
         model.addAttribute("columns", columnChoices);
@@ -180,7 +230,6 @@ public class StockController extends AbstractBaseController {
 
     /**
      * Display ALL stocks search results (with pagination)
-     * /stocks/results
      * Precondition : listOfStocksFound contains values
      * <p>
      * "headerStocksRow" works with:
@@ -192,6 +241,14 @@ public class StockController extends AbstractBaseController {
      * stockPage, pageNumbers, currentPage, paginationDestinationUrl
      * <p>
      * This method returns at URL /stocks/search
+     *
+     * @param model
+     * @param page
+     * @param size
+     * @param sortIcon
+     * @param searchTerm
+     * @param searchType
+     * @return
      */
     @GetMapping(value = "reorderedResults")
     public String displayReorderedSearchResults(
@@ -200,16 +257,24 @@ public class StockController extends AbstractBaseController {
             @RequestParam("size") Optional<Integer> size,
             @RequestParam("sortIcon") Optional<String> sortIcon,
             @RequestParam(required = false) String searchTerm,
-            @RequestParam(required = false) String searchType) {
+            @RequestParam(required = false) String searchType,
+            HttpServletRequest request) {
+
+        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+        if (loggedInUser != null) {//user is logged in
+            model.addAttribute("isLoggedIn", true);
+            model.addAttribute("portfolio", loggedInUser.getPortfolio());
+        }
+
         int currentPage = page.orElse(1);
         int pageSize = size.orElse(numberOfItemsPerPage);
-        ordinarySortCriteria = sortIcon.orElse(ordinarySortCriteria);
-        System.out.println(ordinarySortCriteria);
+        sortCriteriaInSearch = sortIcon.orElse(sortCriteriaInSearch);
+        //System.out.println(sortCriteriaInSearch);
         String iconsDestinationUrl = "/stocks/reorderedResults/?sortIcon=";
         String paginationDestinationUrl = "/stocks/reorderedResults/?size=";
         if (searchTerm != null) {
             iconsDestinationUrl = "/stocks/reorderedResults/?searchType=" + searchType + "&searchTerm=" + searchTerm + "&sortIcon=";
-            paginationDestinationUrl = "/stocks/searchResults/?searchType=" + searchType + "&searchTerm=" + searchTerm + "&size=";
+            paginationDestinationUrl = "/stocks/reorderedResults/?searchType=" + searchType + "&searchTerm=" + searchTerm + "&size=";
         }
 
         //used to display the form with previous radio button in search.html
@@ -217,42 +282,42 @@ public class StockController extends AbstractBaseController {
         model.addAttribute("searchTerm", searchTerm);
 
         model.addAttribute("baseColor", baseColor);
-        model.addAttribute("sortIcon", ordinarySortCriteria);
+        model.addAttribute("sortIcon", sortCriteriaInSearch);
         model.addAttribute("selectedColor", selectedColor);
         model.addAttribute("iconsDestinationUrl", iconsDestinationUrl);
         model.addAttribute("searchDestinationUrl", searchDestinationUrl);
         model.addAttribute("paginationDestinationUrl", paginationDestinationUrl);
         //model.addAttribute("currentPage", currentPage);
 
-        switch (ordinarySortCriteria) {
+        switch (sortCriteriaInSearch) {
             case "tickerUp":
-                listOfStocksFound.sort(Comparators.tickerComparator);
+                listOfStocksFoundInSearch.sort(Comparators.tickerComparator);
                 break;
             case "tickerDown":
-                listOfStocksFound.sort(Comparators.tickerComparator.reversed());
+                listOfStocksFoundInSearch.sort(Comparators.tickerComparator.reversed());
                 break;
             case "corpUp":
-                listOfStocksFound.sort(Comparators.companyNameComparator);
+                listOfStocksFoundInSearch.sort(Comparators.companyNameComparator);
                 break;
             case "corpDown":
-                listOfStocksFound.sort(Comparators.companyNameComparator.reversed());
+                listOfStocksFoundInSearch.sort(Comparators.companyNameComparator.reversed());
                 break;
             case "priceUp":
-                listOfStocksFound.sort(Comparators.latestPriceComparator);
+                listOfStocksFoundInSearch.sort(Comparators.latestPriceComparator);
                 break;
             case "priceDown":
-                listOfStocksFound.sort(Comparators.latestPriceComparator.reversed());
+                listOfStocksFoundInSearch.sort(Comparators.latestPriceComparator.reversed());
                 break;
             case "patentsUp":
-                listOfStocksFound.sort(Comparators.patentsPortfolioComparator);
+                listOfStocksFoundInSearch.sort(Comparators.patentsPortfolioComparator);
                 break;
             case "patentsDown":
-                listOfStocksFound.sort(Comparators.patentsPortfolioComparator.reversed());
+                listOfStocksFoundInSearch.sort(Comparators.patentsPortfolioComparator.reversed());
                 break;
         }
 
-        model.addAttribute("listOfStocksFound", listOfStocksFound);
-        paginatedListingService.setListOfItems(listOfStocksFound);
+        model.addAttribute("listOfStocksFound", listOfStocksFoundInSearch);
+        paginatedListingService.setListOfItems(listOfStocksFoundInSearch);
 
         //used to display the form in search.html
         model.addAttribute("columns", columnChoices);
@@ -285,6 +350,13 @@ public class StockController extends AbstractBaseController {
      * stockPage, pageNumbers, currentPage, paginationDestinationUrl
      * <p>
      * This method returns at URL /stocks/index
+     *
+     * @param tagId
+     * @param model
+     * @param page
+     * @param size
+     * @param sortIcon
+     * @return
      */
     @RequestMapping(method = RequestMethod.GET)
     public String displayStocks(
@@ -292,31 +364,43 @@ public class StockController extends AbstractBaseController {
             Model model,
             @RequestParam("page") Optional<Integer> page,
             @RequestParam("size") Optional<Integer> size,
-            @RequestParam("sortIcon") Optional<String> sortIcon) {
+            @RequestParam("sortIcon") Optional<String> sortIcon,
+            HttpServletRequest request) {
+
+        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+        if (loggedInUser != null) {//user is properly logged in
+            model.addAttribute("isLoggedIn", true);
+            model.addAttribute("portfolio", loggedInUser.getPortfolio());
+        }
 
         int currentPage = page.orElse(1);
         int pageSize = size.orElse(numberOfItemsPerPage);
 
-        ordinarySortCriteria = sortIcon.orElse(ordinarySortCriteria);
+        sortCriteriaInStocksListings = sortIcon.orElse(sortCriteriaInStocksListings);
         String iconsDestinationUrl = "/stocks/?sortIcon=";
         String paginationDestinationUrl = "/stocks/?size=";
 
         //Add IP30's number of patents and weighted price to model
-        loadIP30PriceAndPatentsFootprint(model);
+        if (((List<Stock>) stockRepository.findAll()).size() < 30) {
+            //model.addAttribute(ACTION_MESSAGE_KEY, "info|Not enough stocks in the database to make up IP30");
+            model.addAttribute("noIP30", "noIP30");
+        } else {
+            loadIP30PriceAndPatentsFootprint(model);
+        }
 
         if (tagId == null) { // display ALL stocks
             model.addAttribute("title", "All Stocks");
-            listOfStocksFound = (List<Stock>) stockRepository.findAll();
+            listOfStocksFoundInStocksListing = (List<Stock>) stockRepository.findAll();
         } else { // display stocks for tagId
             Optional<Tag> result = tagRepository.findById(tagId);
             if (result.isEmpty()) {
-                listOfStocksFound = new ArrayList<Stock>();//null;
+                listOfStocksFoundInStocksListing = new ArrayList<Stock>();//null;
                 model.addAttribute("title", "Invalid Tag ID: " + tagId);
                 //return "stocks/index";
             } else { // there are stocks for that tag!
                 Tag tag = result.get();
                 model.addAttribute("title", "Investment field: " + tag.getDisplayName());
-                listOfStocksFound = tag.getStocks();
+                listOfStocksFoundInStocksListing = tag.getStocks();
                 model.addAttribute("tag", tag);
                 model.addAttribute(INFO_MESSAGE_KEY, "info|" +
                         tag.getDisplayName() +
@@ -329,41 +413,41 @@ public class StockController extends AbstractBaseController {
             }
         }
 
-        if (listOfStocksFound.size() == 0) {
+        if (listOfStocksFoundInStocksListing.size() == 0) {
             model.addAttribute(INFO_MESSAGE_KEY, "info|No stocks were found!");
         }
-        switch (ordinarySortCriteria) {
+        switch (sortCriteriaInStocksListings) {
             case "tickerUp":
-                listOfStocksFound.sort(Comparators.tickerComparator);
+                listOfStocksFoundInStocksListing.sort(Comparators.tickerComparator);
                 break;
             case "tickerDown":
-                listOfStocksFound.sort(Comparators.tickerComparator.reversed());
+                listOfStocksFoundInStocksListing.sort(Comparators.tickerComparator.reversed());
                 break;
             case "corpUp":
-                listOfStocksFound.sort(Comparators.companyNameComparator);
+                listOfStocksFoundInStocksListing.sort(Comparators.companyNameComparator);
                 break;
             case "corpDown":
-                listOfStocksFound.sort(Comparators.companyNameComparator.reversed());
+                listOfStocksFoundInStocksListing.sort(Comparators.companyNameComparator.reversed());
                 break;
             case "priceUp":
-                listOfStocksFound.sort(Comparators.latestPriceComparator);
+                listOfStocksFoundInStocksListing.sort(Comparators.latestPriceComparator);
                 break;
             case "priceDown":
-                listOfStocksFound.sort(Comparators.latestPriceComparator.reversed());
+                listOfStocksFoundInStocksListing.sort(Comparators.latestPriceComparator.reversed());
                 break;
             case "patentsUp":
-                listOfStocksFound.sort(Comparators.patentsPortfolioComparator);
+                listOfStocksFoundInStocksListing.sort(Comparators.patentsPortfolioComparator);
                 break;
             case "patentsDown":
-                listOfStocksFound.sort(Comparators.patentsPortfolioComparator.reversed());
+                listOfStocksFoundInStocksListing.sort(Comparators.patentsPortfolioComparator.reversed());
                 break;
         }
-//System.out.println("number of stocks = "+listOfStocksFound.size());
-        paginatedListingService.setListOfItems(listOfStocksFound);
+//System.out.println("number of stocks = "+listOfStocksFoundInStocksListing.size());
+        paginatedListingService.setListOfItems(listOfStocksFoundInStocksListing);
         Page<Stock> stockPage = paginatedListingService.findPaginated(PageRequest.of(currentPage - 1, pageSize));
 
         model.addAttribute("stockPage", stockPage);
-        model.addAttribute("sortIcon", ordinarySortCriteria);
+        model.addAttribute("sortIcon", sortCriteriaInStocksListings);
         model.addAttribute("baseColor", baseColor);
         model.addAttribute("selectedColor", selectedColor);
         model.addAttribute("iconsDestinationUrl", iconsDestinationUrl);
@@ -383,31 +467,52 @@ public class StockController extends AbstractBaseController {
     }
 
     /**
+     * BOTH LOGGED IN AND NOT LOGGED IN
      * Display details of a stock
      * This method returns at URL /stocks/detail
      */
     @GetMapping("detail/{stockId}")
     public String displayStockDetails(
             @PathVariable Integer stockId,
-            Model model) {
+            Model model,
+            HttpServletRequest request) {
+
         Optional<Stock> result = stockRepository.findById(stockId);
         if (result.isEmpty()) {
             model.addAttribute("title", "Invalid Stock ID: " + stockId);
-            //model.addAttribute(INFO_MESSAGE_KEY, "warning|No matching stock found in your portfolio");
+            model.addAttribute(INFO_MESSAGE_KEY, "danger|No matching stock found!");
+            return "redirect:/";
         } else { // there are stocks for that stockId!
             Stock stock = result.get();
             model.addAttribute("title", "Summary of '" + stock.getTicker() + "'");
             model.addAttribute("stock", stock);
             model.addAttribute("exchangePlatforms", stockExchanges);
-            if (stock.getStockDetails().isInPortfolio()) {
-                model.addAttribute(INFO_MESSAGE_KEY, "info|The stock '" + stock.getTicker() + "' is currently in your portfolio");
+
+            User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+            if (loggedInUser != null) {//user is properly logged in
+                model.addAttribute("isLoggedIn", true);
+                Portfolio portfolio = loggedInUser.getPortfolio();
+                Set<Tag> relevantTags = portfolio.getTags().stream()
+                        .distinct()
+                        .filter(stock.getTags()::contains)
+                        .collect(Collectors.toSet());
+                model.addAttribute("relevantTags", relevantTags);
+                if (portfolio.contains(stock)) {
+                    model.addAttribute(INFO_MESSAGE_KEY, "info|The stock '" + stock.getTicker() + "' is currently in your " +
+                            PORTFOLIO_LINK_IN_MSG);
+                    model.addAttribute("inPortfolio", true);
+                    model.addAttribute("numberOfShares", portfolio.getRelevantNumberOfShares(stock));
+                }
+                model.addAttribute("MAX_NUMBER_OF_TAGS", MAX_NUMBER_OF_TAGS);
             }
+
             loadAddtionalStockDataFromIexApi(stock.getTicker(), model);
         }
         return "stocks/detail";
     }
 
     /**
+     * ONLY LOGGED IN USER
      * Display details of my portfolio
      * <p>
      * "headerStocksRow" works with:
@@ -419,40 +524,57 @@ public class StockController extends AbstractBaseController {
      * stockPage, pageNumbers, currentPage, paginationDestinationUrl
      * <p>
      * This method returns at URL /stocks/portfolio
+     *
+     * @param model
+     * @param page
+     * @param size
+     * @param sortIcon
+     * @param request
+     * @return
      */
     @GetMapping("portfolio")
     public String displayPortfolioOfStocks(
             Model model,
             @RequestParam("page") Optional<Integer> page,
             @RequestParam("size") Optional<Integer> size,
-            @RequestParam("sortIcon") Optional<String> sortIcon) {
+            @RequestParam("sortIcon") Optional<String> sortIcon,
+            HttpServletRequest request,
+            RedirectAttributes redirectAttributes) {
+
+        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+        if (loggedInUser == null) {//user is NOT logged in
+            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
+                    NOT_LOGGED_IN_MSG);
+            return "redirect:/";
+        }
+
+        //user is logged in at this point
+        Portfolio portfolio = loggedInUser.getPortfolio();
+        model.addAttribute("isLoggedIn", true);
+        //To collect numberOfShares, totalNumberOfPatents, netWorth, adjustedPatents
+        model.addAttribute("portfolio", portfolio);
+        model.addAttribute("portfolioPage", true);
+        //model.addAttribute("adjustedPatents", portfolio.getAdjustedPatents());
+
         int currentPage = page.orElse(1);
         int pageSize = size.orElse(numberOfItemsPerPage);
-        inPortfolioSortCriteria = sortIcon.orElse(inPortfolioSortCriteria);
+        sortCriteriaInPortfolio = sortIcon.orElse(sortCriteriaInPortfolio);
         String iconsDestinationUrl = "/stocks/portfolio/?sortIcon=";
         String paginationDestinationUrl = "/stocks/portfolio/?size=";
 
         model.addAttribute("baseColor", baseColor);
-        model.addAttribute("sortIcon", inPortfolioSortCriteria);
+        model.addAttribute("sortIcon", sortCriteriaInPortfolio);
         model.addAttribute("selectedColor", selectedColor);
         model.addAttribute("iconsDestinationUrl", iconsDestinationUrl);
         model.addAttribute("paginationDestinationUrl", paginationDestinationUrl);
 
-        model.addAttribute("title", "My stocks portfolio");
-        List<Stock> listOfStocks = (List<Stock>) stockRepository.findAll();
-        List<Stock> portfolioList = new ArrayList<>();
+        model.addAttribute("title", "Stocks portfolio of " +
+                loggedInUser.getUsername());
 
-        int aggregatedPatents = 0;
-        double netWorth = 0.0;
-        for (Stock stock : listOfStocks) {
-            if (stock.getStockDetails().isInPortfolio()) {
-                netWorth += stock.getStockDetails().getLatestPrice() * stock.getStockDetails().getNumberOfShares();
-                aggregatedPatents += stock.getStockDetails().getTotalNumberOfPatents();
-                portfolioList.add(stock);
-            }
-        }
+        List<StockShare> portfolioStockShareList = portfolio.getStockShares();
+        List<Stock> portfolioList = portfolio.getRelevantStocks();
 
-        switch (inPortfolioSortCriteria) {
+        switch (sortCriteriaInPortfolio) {
             case "tickerUp":
                 portfolioList.sort(Comparators.tickerComparator);
                 break;
@@ -478,39 +600,53 @@ public class StockController extends AbstractBaseController {
                 portfolioList.sort(Comparators.patentsPortfolioComparator.reversed());
                 break;
             case "sharesUp":
-                portfolioList.sort(Comparators.numberOfSharesComparator);
+                portfolioStockShareList.sort(Comparators.numberOfSharesComparator);
+                List<String> tickerListUp = portfolioStockShareList.stream().map(s -> s.getStock().getTicker()).collect(Collectors.toList());
+                Collections.sort(portfolioList, (s1, s2) ->
+                        Integer.compare(tickerListUp.indexOf(s1.getTicker())
+                                - tickerListUp.indexOf(s2.getTicker()), 0));
                 break;
             case "sharesDown":
-                portfolioList.sort(Comparators.numberOfSharesComparator.reversed());
+                portfolioStockShareList.sort(Comparators.numberOfSharesComparator.reversed());
+                List<String> tickerListDown = portfolioStockShareList.stream().map(s -> s.getStock().getTicker()).collect(Collectors.toList());
+                Collections.sort(portfolioList, (s1, s2) ->
+                        Integer.compare(tickerListDown.indexOf(s1.getTicker())
+                                - tickerListDown.indexOf(s2.getTicker()), 0));
                 break;
             case "percentInPortfolioUp":
-                portfolioList.sort(Comparators.percentInPortfolioComparator);
+                portfolioStockShareList.sort(Comparators.percentInPortfolioComparator);
+                List<String> tickerListPercentUp = portfolioStockShareList.stream().map(s -> s.getStock().getTicker()).collect(Collectors.toList());
+                Collections.sort(portfolioList, (s1, s2) ->
+                        Integer.compare(tickerListPercentUp.indexOf(s1.getTicker())
+                                - tickerListPercentUp.indexOf(s2.getTicker()), 0));
                 break;
             case "percentInPortfolioDown":
-                portfolioList.sort(Comparators.percentInPortfolioComparator.reversed());
+                portfolioStockShareList.sort(Comparators.percentInPortfolioComparator.reversed());
+                List<String> tickerListPercentDown = portfolioStockShareList.stream().map(s -> s.getStock().getTicker()).collect(Collectors.toList());
+                Collections.sort(portfolioList, (s1, s2) ->
+                        Integer.compare(tickerListPercentDown.indexOf(s1.getTicker())
+                                - tickerListPercentDown.indexOf(s2.getTicker()), 0));
                 break;
         }
 
-        //model.addAttribute("portfolioList", portfolioList);
-        model.addAttribute("aggregatedPatents", aggregatedPatents);
-        model.addAttribute("netWorth", netWorth);
-
         model.addAttribute(INFO_MESSAGE_KEY, "info|Click on the number of shares to adjust it for each stock");
-        paginatedListingService.setListOfItems(portfolioList);
-        Page<Stock> stockPage = paginatedListingService.findPaginated(PageRequest.of(currentPage - 1, pageSize));
+        subTypePaginatedListingService.setListOfItems(portfolioList);
+        Page<Stock> stockPage = subTypePaginatedListingService.findPaginated(PageRequest.of(currentPage - 1, pageSize));
         model.addAttribute("stockPage", stockPage);
         int totalPages = stockPage.getTotalPages();
         if (totalPages > 0) {
             List<Integer> pageNumbers = IntStream.rangeClosed(1, totalPages)
                     .boxed()
                     .collect(Collectors.toList());
-            List<String> reducedPagination = paginatedListingService.paginating(currentPage, pageNumbers.size());
+            List<String> reducedPagination = subTypePaginatedListingService.paginating(currentPage, pageNumbers.size());
             model.addAttribute("pageNumbers", reducedPagination);//pageNumbers);
         }
         return "stocks/portfolio";
     }
 
     /**
+     * ONLY LOGGED IN
+     *
      * @param model
      * @param stockId
      * @return
@@ -518,59 +654,125 @@ public class StockController extends AbstractBaseController {
     @GetMapping("adjust-shares-portfolio/{stockId}")
     public String displayAdjustSharesInPortfolio(
             Model model,
-            @PathVariable int stockId) {
+            @PathVariable int stockId,
+            HttpServletRequest request,
+            RedirectAttributes redirectAttributes) {
+
+        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+        if (loggedInUser == null) {//user is NOT logged in
+            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
+                    NOT_LOGGED_IN_MSG);
+            return "redirect:/";
+        } else {//user is logged in
+            model.addAttribute("isLoggedIn", true);
+        }
+
         Stock stock = stockRepository.findById(stockId).get();
         String ticker = stock.getTicker();
         model.addAttribute("title",
                 "Edit number of shares for " + ticker);
         model.addAttribute("stock", stock);
         model.addAttribute(INFO_MESSAGE_KEY, "info|The" +
-                " number of shares must be a number between 1 and 1000");
+                " number of shares must be a number between 0 and 1000");
         model.addAttribute("stockId", stockId);
+
+        List<StockShare> portfolioStockShareList = loggedInUser.getPortfolio().getStockShares();
+        for (StockShare stockShare : portfolioStockShareList) {
+            if (stockShare.getStock() == stock) {
+                model.addAttribute("stockShare", stockShare);
+                break;
+            }
+        }
+
         return "stocks/adjust-shares";
     }
 
     /**
-     * @param stockId
+     * ONLY LOGGED IN
+     *
+     * @param stockShareId
      * @param numberOfShares
      * @param redirectAttributes
      * @return
      */
     @PostMapping("adjust-shares-portfolio")
     public String processAdjustSharesInPortfolio(
-            int stockId,
+            int stockShareId,
             int numberOfShares,
-            RedirectAttributes redirectAttributes) {
-        Stock stock = stockRepository.findById(stockId).get();
-        stock.getStockDetails().setNumberOfShares(numberOfShares);
-        stockRepository.save(stock);
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request) {
+
+        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+        if (loggedInUser == null) {//user is NOT logged in
+            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
+                    NOT_LOGGED_IN_MSG);
+            return "redirect:/";
+        }
+
+        StockShare stockShare = stockShareRepository.findById(stockShareId).get();
+        stockShare.setNumberOfShares(numberOfShares);
+        stockShareRepository.save(stockShare);
         redirectAttributes.addFlashAttribute(ACTION_MESSAGE_KEY, "success|The" +
-                " number of shares has been updated successfully for " + stock.getTicker());
+                " number of shares has been updated successfully for " + stockShare.getStock().getTicker());
         return "redirect:/stocks/portfolio";
     }
 
     /**
+     * ONLY LOGGED IN
      * Display details of a stock AFTER adding
      * it to the portfolio
      * This method returns at URL /stocks/detail
+     *
+     * Precondition: User is logged in!
      */
     @GetMapping("add-to-portfolio/{stockId}")
     public String displayStockDetailsInPortfolio(
             @PathVariable Integer stockId,
-            Model model) {
+            Model model,
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request) {
+
+        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+        if (loggedInUser == null) {//user is NOT logged in
+            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
+                    NOT_LOGGED_IN_MSG);
+            return "redirect:/";
+        }
+        //user is logged in at this point
+        model.addAttribute("isLoggedIn", true);
+
         Optional<Stock> result = stockRepository.findById(stockId);
         if (result.isEmpty()) {
             model.addAttribute("title", "Invalid Stock ID: " + stockId);
         } else { // there are stocks for that stockId!
             Stock stock = result.get();
-            stock.getStockDetails().setInPortfolio(true);
-            stockRepository.save(stock);
-            model.addAttribute(ACTION_MESSAGE_KEY, "success|The stock '" + stock.getTicker() + "' has been added to your portfolio");
-            model.addAttribute("title", "Summary of '" + stock.getTicker() + "'");
-            model.addAttribute("stock", stock);
-            model.addAttribute("exchangePlatforms", stockExchanges);
+            Portfolio portfolio = loggedInUser.getPortfolio();
 
-            loadAddtionalStockDataFromIexApi(stock.getTicker(), model);
+            Set<Tag> relevantTags = portfolio.getTags().stream()
+                    .distinct()
+                    .filter(stock.getTags()::contains)
+                    .collect(Collectors.toSet());
+            model.addAttribute("relevantTags", relevantTags);
+
+            if (!portfolio.contains(stock)) {//stock in NOT in portfolio
+                StockShare stockShare = new StockShare(stock, portfolio);
+                stockShareRepository.save(stockShare);
+
+                model.addAttribute("inPortfolio", true);
+                model.addAttribute("numberOfShares", portfolio.getRelevantNumberOfShares(stock));
+
+                model.addAttribute("title", "Summary of '" + stock.getTicker() + "'");
+                model.addAttribute("stock", stock);
+                model.addAttribute("MAX_NUMBER_OF_TAGS", MAX_NUMBER_OF_TAGS);
+                model.addAttribute("exchangePlatforms", stockExchanges);
+                loadAddtionalStockDataFromIexApi(stock.getTicker(), model);
+                model.addAttribute(ACTION_MESSAGE_KEY, "success|The stock '" + stock.getTicker() + "' has been added to your " +
+                        PORTFOLIO_LINK_IN_MSG);
+            } else {
+                redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "warning|The stock '" + stock.getTicker() + "' is already in your " +
+                        PORTFOLIO_LINK_IN_MSG);
+                return "redirect:";
+            }
         }
         return "stocks/detail";
     }
@@ -581,7 +783,9 @@ public class StockController extends AbstractBaseController {
      * @param ticker
      * @param model
      */
-    void loadAddtionalStockDataFromIexApi(String ticker, Model model) {
+    void loadAddtionalStockDataFromIexApi(
+            String ticker,
+            Model model) {
         // /stock/{symbol}/company
         String iexStockUrlString = BASE_URL_LIVE_IEX //BASE_URL_SANDBOX_IEX
                 + "/stable/stock/" + ticker + "/company?token=" + IEX_PUBLIC_TOKEN;//IEX_TEST_TOKEN_TPK;
@@ -619,9 +823,11 @@ public class StockController extends AbstractBaseController {
     }
 
     /**
+     * ONLY LOGGED IN
      * Display details of a stock AFTER
      * removing a stock from portfolio
      * This method returns at URL /stocks/detail
+     *
      * @param stockId
      * @param redirectAttributes
      * @return
@@ -629,18 +835,40 @@ public class StockController extends AbstractBaseController {
     @GetMapping("remove-from-portfolio/{stockId}")
     public String displayStockDetailsRemovedFromPortfolio(
             @PathVariable Integer stockId,
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request) {
+
+        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+        if (loggedInUser == null) {//user is NOT logged in
+            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
+                    NOT_LOGGED_IN_MSG);
+            return "redirect:/";
+        }
+
         Optional<Stock> result = stockRepository.findById(stockId);
         if (result.isEmpty()) {
             //model.addAttribute("title", "Invalid Stock ID: " + stockId);
-            redirectAttributes.addFlashAttribute(ACTION_MESSAGE_KEY, "danger|Invalid Stock ID: " + stockId);
+            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|Invalid Stock ID: " + stockId);
         } else { // there are stocks for that stockId!
             Stock stock = result.get();
-            stock.getStockDetails().setNumberOfShares(0);
-            stock.getStockDetails().setInPortfolio(false);
-            stockRepository.save(stock);
-            redirectAttributes.addFlashAttribute(ACTION_MESSAGE_KEY, "success|The stock '" + stock.getTicker() + "' has been removed from your portfolio. " +
-                    "All shares previously set to this stock have been wiped out.");
+            Portfolio portfolio = loggedInUser.getPortfolio();
+            if (!portfolio.contains(stock)) {//the stock is not in the portfolio
+                redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|The stock '" + stock.getTicker() + "' is not currently in your " +
+                        PORTFOLIO_LINK_IN_MSG);
+            } else {//The stock to be removed is in the portfolio
+                //i) identify corresponding stockShare
+                //ii) delete corresponding stockShare
+                List<StockShare> listOfStockShare = portfolio.getStockShares();
+                for (StockShare stockShare : listOfStockShare) {
+                    if (stockShare.getStock().getTicker().equals(stock.getTicker())) {
+                        stockShareRepository.deleteById(stockShare.getId());
+                        redirectAttributes.addFlashAttribute(ACTION_MESSAGE_KEY, "success|The stock '" + stock.getTicker() + "' has been removed from your " +
+                                PORTFOLIO_LINK_IN_MSG +
+                                ". All shares previously set to this stock have been wiped out.");
+                        break;
+                    }
+                }
+            }
 //            model.addAttribute("title", "Summary of '" + stock.getTicker() + "'");
 //            model.addAttribute("stock", stock);
 //            model.addAttribute("exchangePlatforms", stockExchanges);
@@ -650,6 +878,7 @@ public class StockController extends AbstractBaseController {
     }
 
     /**
+     * ONLY LOGGED IN
      * add tag to a stock
      * responds to /stocks/add-tag?stockId=13
      *
@@ -660,11 +889,47 @@ public class StockController extends AbstractBaseController {
     @GetMapping("add-tag/{stockId}")
     public String displayAddTagForm(
             @PathVariable Integer stockId,
-            Model model) {
+            Model model,
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request) {
+
+        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+        if (loggedInUser == null) {//user is NOT logged in
+            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
+                    NOT_LOGGED_IN_MSG);
+            return "redirect:/";
+        } else {//user is logged in
+            model.addAttribute("isLoggedIn", true);
+        }
+
         Optional<Stock> result = stockRepository.findById(stockId);
         Stock stock = result.get();
         model.addAttribute("title", "Add Tag to: " + stock.getTicker());
-        model.addAttribute("tags", tagRepository.findAll());
+
+        //model.addAttribute("tags", tagRepository.findAll());
+        List<Tag> allTags = loggedInUser.getPortfolio().getTags();
+        List<Tag> tags = new ArrayList<>();
+        int alreadyTagged = 0;
+        for (Tag tag : allTags) {
+            if (!stock.getTags().contains(tag)) {
+                tags.add(tag);
+            } else {
+                alreadyTagged++;
+            }
+        }
+        int tagsSpotsLeft = MAX_NUMBER_OF_TAGS - alreadyTagged;
+
+        if (tags.size() == 0) {//No tags in databse
+            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "warning|" +
+                    NOT_TAG_MSG);
+            return "redirect:/";
+        }
+
+        model.addAttribute("tags", tags);
+        model.addAttribute(ACTION_MESSAGE_KEY, "info|Up to a maximum of " +
+                MAX_NUMBER_OF_TAGS + " tags may be added to a stock." +
+                " You may add " + tagsSpotsLeft + " more tag(s).");
+
         //model.addAttribute("stock", stock);
         StockTagDTO stockTagDTO = new StockTagDTO();
         stockTagDTO.setStock(stock);
@@ -673,6 +938,7 @@ public class StockController extends AbstractBaseController {
     }
 
     /**
+     * ONLY LOGGED IN
      * Add tag to a stock
      * responds to /stocks/add-tag?stockId=13
      *
@@ -685,7 +951,16 @@ public class StockController extends AbstractBaseController {
     public String processAddTagForm(
             @ModelAttribute @Valid StockTagDTO stockTag,
             Errors errors,
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request) {
+
+        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+        if (loggedInUser == null) {//user is NOT logged in
+            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
+                    NOT_LOGGED_IN_MSG);
+            return "redirect:/";
+        }
+
         if (!errors.hasErrors()) {
             Stock stock = stockTag.getStock();
             Tag tag = stockTag.getTag();
@@ -704,6 +979,7 @@ public class StockController extends AbstractBaseController {
     }
 
     /**
+     * ONLY LOGGED IN
      * remove tag from a stock
      * responds to /stocks/remove-tag?stockId=13
      *
@@ -714,11 +990,33 @@ public class StockController extends AbstractBaseController {
     @GetMapping("remove-tag/{stockId}")
     public String displayRemoveTagForm(
             @PathVariable Integer stockId,
-            Model model) {
+            Model model,
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request) {
+
+        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+        if (loggedInUser == null) {//user is NOT logged in
+            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
+                    NOT_LOGGED_IN_MSG);
+            return "redirect:/";
+        } else {//user is logged in
+            model.addAttribute("isLoggedIn", true);
+        }
+
         Optional<Stock> result = stockRepository.findById(stockId);
         Stock stock = result.get();
         model.addAttribute("title", "Remove Tag from: " + stock.getTicker());
-        model.addAttribute("tags", stock.getTags());//tagRepository.findAll());
+
+        List<Tag> allTags = loggedInUser.getPortfolio().getTags();
+        List<Tag> stockTags = stock.getTags();
+
+        //intersection of the two lists
+        Set<Tag> setOfTags = allTags.stream()
+                .distinct()
+                .filter(stockTags::contains)
+                .collect(Collectors.toSet());
+
+        model.addAttribute("tags", new ArrayList<Tag>(setOfTags));//tagRepository.findAll());
         model.addAttribute("stockId", stockId);
 //        StockTagDTO stockTagDTO = new StockTagDTO();
 //        stockTagDTO.setStock(stock);
@@ -727,6 +1025,7 @@ public class StockController extends AbstractBaseController {
     }
 
     /**
+     * ONLY LOGGED IN
      * remove tag from a stock
      * responds to /stocks/remove-tag?stockId=13
      *
@@ -737,7 +1036,16 @@ public class StockController extends AbstractBaseController {
     public String processRemoveTagForm(
             int stockId,
             @RequestParam(required = false) int[] tagIds,
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request) {
+
+        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+        if (loggedInUser == null) {//user is NOT logged in
+            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
+                    NOT_LOGGED_IN_MSG);
+            return "redirect:/";
+        }
+
         Optional<Stock> result = stockRepository.findById(stockId);
         Stock stock = result.get();
         String messageString = "";
@@ -987,12 +1295,23 @@ public class StockController extends AbstractBaseController {
     }
 
     /**
+     * ONLY LOGGED IN
+     *
      * @param redirectAttributes
      * @return
      */
     @GetMapping("callAPIs")
     public String displayStocksAfterCallingAPIs(
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request) {
+
+        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+        if (loggedInUser == null) {//user is NOT logged in
+            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
+                    NOT_LOGGED_IN_MSG);
+            return "redirect:/";
+        }
+
         loadUsptoAPI();
         loadIexApi();
         redirectAttributes.addFlashAttribute(ACTION_MESSAGE_KEY, "success|Completed API calls. You now have the latest market stock data.");
@@ -1000,10 +1319,29 @@ public class StockController extends AbstractBaseController {
         return "redirect:/stocks";
     }
 
+    /**
+     * @param model
+     * @param redirectAttributes
+     * @return
+     */
     @GetMapping("IP30")
-    public String displayIP30(Model model) {
-        int size = 30;
+    public String displayIP30(
+            Model model,
+            RedirectAttributes redirectAttributes,
+            HttpServletRequest request) {
+
+        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+        if (loggedInUser != null) {//user is logged in
+            model.addAttribute("isLoggedIn", true);
+        }
+
         List<Stock> listOfStocks = (List<Stock>) stockRepository.findAll();
+        int size = Math.min(30, listOfStocks.size());
+        if (size < 30) {
+            redirectAttributes.addFlashAttribute(ACTION_MESSAGE_KEY, "info|Not enough stocks in the database to make up IP30");
+            redirectAttributes.addFlashAttribute("noIP30", "noIP30");
+            return "redirect:/stocks";
+        }
         listOfStocks.sort(Comparators.patentsPortfolioComparator.reversed());
         List<Stock> IP30List = new ArrayList<>(size);
         IP30List.addAll(listOfStocks.subList(0, size));
@@ -1017,12 +1355,13 @@ public class StockController extends AbstractBaseController {
     /**
      * Compute IP30's number of patents and
      * weighted price dynamically
+     * Precondition : There are more than 30 stocks in the databse
      *
      * @param model
      */
     void loadIP30PriceAndPatentsFootprint(Model model) {
-        int size = 30;
         List<Stock> listOfStocks = (List<Stock>) stockRepository.findAll();
+        int size = 30;
         listOfStocks.sort(Comparators.patentsPortfolioComparator.reversed());
         List<Stock> IP30List = new ArrayList<>(size);
         IP30List.addAll(listOfStocks.subList(0, size));

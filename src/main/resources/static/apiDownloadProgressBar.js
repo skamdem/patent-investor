@@ -3,19 +3,22 @@ let appName = "Patent Investor";
 $(document).ready(function(){
     function progressBarFunction() {
         //alert("button clicked");
-        document.getElementById("progressionBar").style.visibility = 'visible';
-        document.getElementById("progressionText").style.visibility = 'visible';
+        document.getElementById("progressionBar").style.display = 'block';
+        //document.getElementById("progressionText").style.visibility = 'visible';
 
         var current_progress = 0;//[[${current_progress}]];
         var interval = setInterval(function() {
-            const fetchPromise = fetch("/stocks/progress-bar-value");
+            /*const fetchPromise = fetch("/stocks/progress-bar-value");
             fetchPromise.then(function(response) {
                 const jsonPromise = response.json();
                 jsonPromise.then( function(json) {
                   current_progress = json.percentValue;
                   //alert("current_progress1 = " + json.percentValue);
                 });
-            });
+            });*/
+            fetch("/stocks/progress-bar-value")
+                .then(response => response.json())
+                .then(json => current_progress = json.percentValue);
             //alert("current_progress2 = " + current_progress);
             $("#dynamic")
             .css("width", current_progress + "%")

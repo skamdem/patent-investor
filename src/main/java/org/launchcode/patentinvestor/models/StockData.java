@@ -18,10 +18,13 @@ public class StockData {
      *
      * @param column Stock field that should be searched.
      * @param value  Value of the field to search for.
+     * @param stockList
      * @return List of all stocks matching the criteria.
      */
     public static ArrayList<Stock> findByColumnAndValue(
-            String column, String value, List<Stock> stockList) {
+            String column,
+            String value,
+            List<Stock> stockList) {
 
         ArrayList<Stock> stocks = new ArrayList<>();
         if (value.toLowerCase().equals("all")) {
@@ -41,10 +44,14 @@ public class StockData {
         return stocks;
     }
 
-    /*
-     * Return the string value for the corresponding column in that "stock" row
+    /**
+     * @param stock
+     * @param fieldName
+     * @return the string value for the corresponding column
+     * in that "stock" row
      */
-    public static String getFieldValue(Stock stock, String fieldName) {
+    public static String getFieldValue(Stock stock,
+                                       String fieldName) {
         String theValue = "";
         if (fieldName.equals("ticker")) {
             theValue = stock.getTicker();
@@ -58,9 +65,11 @@ public class StockData {
      * Search all Stock fields for the given term.
      *
      * @param value The search term to look for.
+     * @param stockList
      * @return List of all stocks with at least one field containing the value.
      */
-    public static ArrayList<Stock> findByValue(String value, List<Stock> stockList) {
+    public static ArrayList<Stock> findByValue(String value,
+                                               List<Stock> stockList) {
         ArrayList<Stock> stocks = new ArrayList<>();
         for (Stock stock : stockList) {
             if (stock.getTicker().toLowerCase().contains(value.toLowerCase())) {
