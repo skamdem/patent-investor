@@ -430,12 +430,14 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
         </td>
 
         <!-- Begin optional section for portfolio page-->
-        <td th:if="${portfolioPage != null}">
-            <span th:unless="${stock.tags.size()} > 0"
+        <td th:if="${portfolioPage != null}"
+            th:with="relevantTags=${stock.getInPortfolioTags(portfolio.getTags())}"
+        >
+            <span th:unless="${relevantTags.size() > 0}"
                   th:text="'No tags found'"
             ></span>
-            <th:block th:if="${stock.getTags().size()>=1}">
-                <th:block th:each="tag : ${stock.getTags()}">
+            <th:block th:if="${relevantTags.size()>=1}">
+                <th:block th:each="tag : ${relevantTags}">
                     <!--a th:text="${tag.getDisplayName()} + ' '"
                        th:alt-title="'View details of ' + ${tag.getDisplayName()}"
                        th:href="'/tags/view/'+${tag.id}">

@@ -16,6 +16,10 @@
         </label>
         <p th:errors="${tag.name}"
            class="error"></p>
+        <input type="hidden"
+               th:field="${tag.portfolio}">
+        <!--p th:errors="${tag.portfolio}"
+           class="error"></p-->
     </div>
     <div class="form-group">
         <label>Description of the investment field
@@ -32,6 +36,10 @@
         <input type="submit"
                value="Create"
                class="btn btn-success">
+        <a th:href="@{${'/tags'}}"
+           class="btn btn-info">
+            Cancel
+        </a>
     </div>
 </form>
 

@@ -128,17 +128,17 @@
         Add to portfolio
     </a>
 
-    <a th:unless="${stock.getTags().size() >= MAX_NUMBER_OF_TAGS}"
+    <a th:unless="${relevantTags.size() >= MAX_NUMBER_OF_TAGS}"
        th:href="@{${'/stocks/add-tag/'+stock.id}}"
        th:alt-title="'Add an investment field to ' + ${stock.ticker}"
-       class="btn btn-success mb-3">
+       class="btn btn-primary mb-3">
         Add tag
     </a>
 
     <a th:unless="${relevantTags.size() < 1}"
        th:href="@{${'/stocks/remove-tag/'+stock.id}}"
        th:alt-title="'Remove an investment field from ' + ${stock.ticker}"
-       class="btn btn-success mb-3">
+       class="btn btn-warning mb-3">
         Remove tag
     </a>
 

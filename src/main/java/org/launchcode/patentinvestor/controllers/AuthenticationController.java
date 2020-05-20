@@ -20,7 +20,6 @@ import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.util.Optional;
 
-
 /**
  * Created by kamdem
  * For login/logout

@@ -155,7 +155,7 @@ public class TagController {
         //User loggedInUser = authenticationController.getUserFromSession(request.getSession());
         model.addAttribute("isLoggedIn", true);
         Portfolio portfolio = loggedInUser.getPortfolio();
-
+        //System.out.println("A: "+portfolio);
         model.addAttribute(new Tag(portfolio)); //model.addAttribute(new Tag());
         return "tags/create";
     }
@@ -184,14 +184,19 @@ public class TagController {
             return "redirect:/";
         }
 
-        if (errors.hasErrors()) {
+        if (errors.hasFieldErrors("name") || errors.hasFieldErrors("description")) {
             model.addAttribute("title", "Create investment field");
             model.addAttribute("isLoggedIn", true);
             model.addAttribute(tag);
             model.addAttribute(ACTION_MESSAGE_KEY, "danger|Failed to create a new investment field");
             return "tags/create";
         }
-        tagRepository.save(tag);
+
+        Tag newTag = new Tag(tag.getName(), tag.getDescription(), loggedInUser.getPortfolio());
+        //System.out.println("D: "+ newTag.getPortfolio());
+        tagRepository.save(newTag);
+        //tagRepository.save(tag);
+
         redirectAttributes.addFlashAttribute(ACTION_MESSAGE_KEY, "success|New investment field " + tag.getDisplayName() + " created");
         return "redirect:/tags";
     }
@@ -307,34 +312,54 @@ public class TagController {
         String tagName = tag.getDisplayName();
         model.addAttribute("title",
                 "Edit investment field " + tagName);
-        model.addAttribute("theTag", tag);
+        model.addAttribute("tag", tag);
         if (tag.getStocks().size() > 0) {
             model.addAttribute(INFO_MESSAGE_KEY, "warning|" +
                     tag.getDisplayName() +
                     " is currently set to " +
                     tag.getStocks().size() + " stock(s) that would be affected");
         }
+        //System.out.println("A: "+tag.getId());
+        model.addAttribute("tagId",tag.getId());
         return "tags/edit";
     }
 
     /**
-     * @param tagId
-     * @param name
-     * @param description
+     *
+     * @param tag
+     * @param errors
+     * @param model
      * @param redirectAttributes
      * @return
      */
     @PostMapping("edit")
     public String processEditForm(
+            @Valid @ModelAttribute Tag tag,
+            Errors errors,
+            Model model,
             int tagId,
-            String name,
-            String description,
+//            String name,
+//            String description,
             RedirectAttributes redirectAttributes) {
+
+            if (errors.hasFieldErrors("name") || errors.hasFieldErrors("description")) {
+                //System.out.println("B: "+tagId);//tag.getId());
+                String tagName = tagRepository.findById(tagId).get().getDisplayName();
+                model.addAttribute("title",
+                        "Edit investment field " + tagName);
+                model.addAttribute("tag", tag);
+                model.addAttribute("tagId", tagId);
+                model.addAttribute("isLoggedIn", true);
+                model.addAttribute(tag);
+                model.addAttribute(ACTION_MESSAGE_KEY, "danger|Failed to edit the investment field " + tagName);
+                return "/tags/edit";
+            }
+
         Optional<Tag> result = tagRepository.findById(tagId);
-        Tag tag = result.get();
-        tag.setDescription(description);
-        tag.setName(name);
-        tagRepository.save(tag);
+        Tag editedTag = result.get();
+        editedTag.setDescription(tag.getDescription());
+        editedTag.setName(tag.getName());
+        tagRepository.save(editedTag);
         redirectAttributes.addFlashAttribute(ACTION_MESSAGE_KEY, "success|" + tag.getDisplayName() + " successfully edited");
         return "redirect:/tags";
     }

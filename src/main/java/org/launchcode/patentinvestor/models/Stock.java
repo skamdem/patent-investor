@@ -1,12 +1,17 @@
 package org.launchcode.patentinvestor.models;
 
+import org.launchcode.patentinvestor.controllers.AuthenticationController;
+
 import javax.persistence.*;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Created by kamdem
@@ -63,6 +68,16 @@ public class Stock extends AbstractEntity {
 
     public List<Tag> getTags() {
         return tags;
+    }
+
+    public List<Tag> getInPortfolioTags(List<Tag> portfolioTags) {
+        //intersection of the two lists
+        Set<Tag> setOfTags = portfolioTags.stream()
+                .distinct()
+                .filter(this.getTags()::contains)
+                .collect(Collectors.toSet());
+
+        return new ArrayList<Tag>(setOfTags);
     }
 
     public void addTag(Tag tag) {

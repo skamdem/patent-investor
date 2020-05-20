@@ -3,6 +3,7 @@ package org.launchcode.patentinvestor.models;
 import javax.persistence.Entity;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -38,6 +39,7 @@ public class Tag extends AbstractEntity {
     }
 
     public Tag(Portfolio portfolio) {
+        //System.out.println("B: "+portfolio);
         this.portfolio = portfolio;
     }
 

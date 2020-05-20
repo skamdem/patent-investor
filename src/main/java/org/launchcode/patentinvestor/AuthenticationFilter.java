@@ -53,12 +53,18 @@ public class AuthenticationFilter extends HandlerInterceptorAdapter {
             HttpServletResponse response,
             Object handler) throws IOException {
 
+        HttpSession session = request.getSession();
+
         // Don't require sign-in for whitelisted pages
         if (isWhitelisted(request.getRequestURI())) {
+
+
+
+
             // returning true indicates that the request may proceed
             return true;
         }
-        HttpSession session = request.getSession();
+        //HttpSession session = request.getSession();
         User user = authenticationController.getUserFromSession(session);
         // The user is logged in
         if (user != null) {

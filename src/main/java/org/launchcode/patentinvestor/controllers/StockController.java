@@ -53,7 +53,7 @@ public class StockController {
     List<Stock> listOfStocksFoundInStocksListing;
 
     //used for pagination
-    static final int numberOfItemsPerPage = 10;
+    static final int numberOfItemsPerPage = 6;//10;
 
     static final String baseColor = "white";
     static final String selectedColor = "green";
@@ -491,11 +491,15 @@ public class StockController {
             User loggedInUser = authenticationController.getUserFromSession(request.getSession());
             if (loggedInUser != null) {//user is properly logged in
                 model.addAttribute("isLoggedIn", true);
+
                 Portfolio portfolio = loggedInUser.getPortfolio();
-                Set<Tag> relevantTags = portfolio.getTags().stream()
-                        .distinct()
-                        .filter(stock.getTags()::contains)
-                        .collect(Collectors.toSet());
+//                Set<Tag> relevantTags = portfolio.getTags().stream()
+//                        .distinct()
+//                        .filter(stock.getTags()::contains)
+//                        .collect(Collectors.toSet());
+
+                //intersection of the lists of portfolio tags and all stock tags
+                List<Tag> relevantTags = stock.getInPortfolioTags(portfolio.getTags());
                 model.addAttribute("relevantTags", relevantTags);
                 if (portfolio.contains(stock)) {
                     model.addAttribute(INFO_MESSAGE_KEY, "info|The stock '" + stock.getTicker() + "' is currently in your " +
@@ -641,6 +645,7 @@ public class StockController {
             List<String> reducedPagination = subTypePaginatedListingService.paginating(currentPage, pageNumbers.size());
             model.addAttribute("pageNumbers", reducedPagination);//pageNumbers);
         }
+
         return "stocks/portfolio";
     }
 
@@ -748,10 +753,11 @@ public class StockController {
             Stock stock = result.get();
             Portfolio portfolio = loggedInUser.getPortfolio();
 
-            Set<Tag> relevantTags = portfolio.getTags().stream()
-                    .distinct()
-                    .filter(stock.getTags()::contains)
-                    .collect(Collectors.toSet());
+//            Set<Tag> relevantTags = portfolio.getTags().stream()
+//                    .distinct()
+//                    .filter(stock.getTags()::contains)
+//                    .collect(Collectors.toSet());
+            List<Tag> relevantTags = stock.getInPortfolioTags(portfolio.getTags());
             model.addAttribute("relevantTags", relevantTags);
 
             if (!portfolio.contains(stock)) {//stock in NOT in portfolio
@@ -1007,16 +1013,17 @@ public class StockController {
         Stock stock = result.get();
         model.addAttribute("title", "Remove Tag from: " + stock.getTicker());
 
-        List<Tag> allTags = loggedInUser.getPortfolio().getTags();
+        /*List<Tag> allTags = loggedInUser.getPortfolio().getTags();
         List<Tag> stockTags = stock.getTags();
 
         //intersection of the two lists
         Set<Tag> setOfTags = allTags.stream()
                 .distinct()
                 .filter(stockTags::contains)
-                .collect(Collectors.toSet());
-
-        model.addAttribute("tags", new ArrayList<Tag>(setOfTags));//tagRepository.findAll());
+                .collect(Collectors.toSet());*/
+        //intersection of the lists of portfolio tags and all stock tags
+        List<Tag> inPortfolioStockTags = stock.getInPortfolioTags(loggedInUser.getPortfolio().getTags());
+        model.addAttribute("inPortfolioStockTags", inPortfolioStockTags);//tagRepository.findAll());
         model.addAttribute("stockId", stockId);
 //        StockTagDTO stockTagDTO = new StockTagDTO();
 //        stockTagDTO.setStock(stock);

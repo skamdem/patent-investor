@@ -8,7 +8,7 @@
 <form method="post"
       action="/stocks/remove-tag">
     <table class="table table-striped">
-        <tr th:each="tag : ${tags}">
+        <tr th:each="tag : ${inPortfolioStockTags}">
             <td>
                 <span th:text="'#'+${tag.name}"></span>
             </td>
@@ -29,7 +29,7 @@
                value="Remove Tag(s)"
                class="btn btn-danger deletion">
         <a th:href="@{${'/stocks/detail/'+stockId}}"
-           class="btn btn-success">
+           class="btn btn-info">
             Cancel
         </a>
     </div>

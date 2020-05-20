@@ -21,6 +21,10 @@
         <input type="submit"
                class="btn btn-success"
                value="Add Tag">
+        <a th:href="@{${'/stocks/detail/'+stockTag.stock.id}}"
+           class="btn btn-info">
+            Cancel
+        </a>
     </form>
 </div>
 

@@ -10,32 +10,33 @@
 <form method="post" th:action="@{/tags/edit}">
     <div class="form-group">
         <label>Field name
-            <input type="text"
-                   name="name"
-                   th:value="${theTag.name}"
-                   class="form-control">
+            <input th:field="${tag.name}"
+                   placeholder="Investment field name"
+                   class="form-control" required>
         </label>
-        <!--p th:errors="${theTag.name}"
-           class="error"></p-->
+        <p th:errors="${tag.name}"
+           class="error"></p>
     </div>
     <div class="form-group">
         <label>Description of the investment field
-            <textarea th:field="${theTag.description}"
-                      class="form-control">
+            <textarea th:field="${tag.description}"
+                      class="form-control"
+                      placeholder="Required description"
+                      required>
             </textarea>
         </label>
-        <!--p class="error"
-           th:errors="${theTag.description}"></p-->
+        <p class="error"
+           th:errors="${tag.description}"></p>
     </div>
     <input type="hidden"
-           th:value="${theTag.id}"
-           name="tagId" />
+           name="tagId"
+           th:value="${tagId}"/>
     <div class="form-group">
         <input type="submit"
                value="Save investment field"
-               class="btn btn-warning">
+               class="btn btn-success">
         <a  th:href="@{${'/tags'}}"
-            class="btn btn-success">
+            class="btn btn-info">
             Cancel
         </a>
     </div>
