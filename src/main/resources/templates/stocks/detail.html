@@ -6,32 +6,24 @@
 <div th:replace="fragments :: messages"></div>
 
 <div class="row">
-    <div class="col-sm-12 col-md-4 merge-with-background">
-        <div class="card mb-4 merge-with-background">
-            <div class="text-left merge-with-background">
-                <h4 class="card-text">
-                    $ <span th:style="'color:green'"
-                            th:text="${stock.stockDetails.latestPrice}">0</span>
-                </h4>
-                <p class="card-text">
-                    Last Trade : <span th:text="${stock.stockDetails.getLastTradeTime()}">0</span>
-                </p>
-            </div>
-        </div>
+    <div class="col-md-6 text-left merge-with-background">
+        <h4 class="card-text">
+            $ <span th:style="'color:green'"
+                    th:text="${stock.stockDetails.latestPrice}">0</span>
+        </h4>
+        <p class="card-text">
+            Last Trade : <span th:text="${stock.stockDetails.getLastTradeTime()}">0</span>
+        </p>
     </div>
-    <div class="col merge-with-background">
-        <div class="card merge-with-background">
-            <div class="text-right merge-with-background">
-                <h4 class="card-text">
+    <div class="col-md-6 text-right merge-with-background">
+        <h4 class="card-text">
                     <span th:style="'color:green'"
                           th:text="${#numbers.formatDecimal(stock.stockDetails.getTotalNumberOfPatents(), 0, 'COMMA', 0, 'POINT')}">0</span>
-                    patents registered
-                </h4>
-                <p class="card-text">
-                    Last update : <span th:text="${stock.stockDetails.getLastUsptoApiUpdate()}"></span>
-                </p>
-            </div>
-        </div>
+            patents registered
+        </h4>
+        <p class="card-text">
+            Last update : <span th:text="${stock.stockDetails.getLastUsptoApiUpdate()}"></span>
+        </p>
     </div>
 </div>
 
@@ -46,11 +38,13 @@
 </div>
 
 <div th:if="${website}" class="row">
-    <h6 th:text="'Description of ' + ${stock.getTicker()} + ':&nbsp;'"
-        th:style="'display:block'">
-    </h6>
-    <div th:style="'text-align: justify'" th:text="' ' + ${description}"></div>
-    <br>
+    <div class="col-md-12">
+        <h6 th:text="'Description of ' + ${stock.getTicker()} + ':&nbsp;'"
+            th:style="'display:block'">
+        </h6>
+        <div th:style="'text-align: justify'" th:text="' ' + ${description}"></div>
+        <br>
+    </div>
 </div>
 
 <table class="table table-borderless table-hover table-striped table-dark">
