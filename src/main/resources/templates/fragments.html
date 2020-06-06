@@ -398,15 +398,15 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
             <td>
                 <a th:alt-title="'Adjust number of shares  of ' + ${{stock.ticker}}"
                    th:href="@{${'/stocks/adjust-shares-portfolio/'+stock.id}}">
-                    <span th:text="${portfolio.getRelevantNumberOfShares(stock)}">
+                    <span th:text="${user.getPortfolio().getRelevantNumberOfShares(stock)}">
                     </span>
                 </a>
             </td>
             <td>
-                <span th:if="${portfolio.getNetWorth() != 0.0}"
-                      th:text="${#numbers.formatDecimal((portfolio.getRelevantNumberOfShares(stock)*stock.stockDetails.latestPrice)*100 / portfolio.getNetWorth(), 2, 'COMMA', 2, 'POINT')} + ' %'">
+                <span th:if="${user.getPortfolio().getNetWorth() != 0.0}"
+                      th:text="${#numbers.formatDecimal((user.getPortfolio().getRelevantNumberOfShares(stock)*stock.stockDetails.latestPrice)*100 / user.getPortfolio().getNetWorth(), 2, 'COMMA', 2, 'POINT')} + ' %'">
                 </span>
-                <span th:if="${portfolio.getNetWorth() == 0.0}"
+                <span th:if="${user.getPortfolio().getNetWorth() == 0.0}"
                       th:alt-title="'Nothing bought in your portfolio'">
                     n\a
                 </span>
@@ -431,7 +431,7 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
 
         <!-- Begin optional section for portfolio page-->
         <td th:if="${portfolioPage != null}"
-            th:with="relevantTags=${stock.getInPortfolioTags(portfolio.getTags())}"
+            th:with="relevantTags=${stock.getInPortfolioTags(user.getPortfolio().getTags())}"
         >
             <span th:unless="${relevantTags.size() > 0}"
                   th:text="'No tags found'"
@@ -457,7 +457,7 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
             <!--div th:if="${isLoggedIn != null}"-->
                 <!-- Display this if OUTSIDE portfolio page -->
                 <th:block th:if="${portfolioPage == null}">
-                    <a th:if="${portfolio.contains(stock)}"
+                    <a th:if="${user.getPortfolio().contains(stock)}"
                        href="#"
                        th:alt-title="${stock.ticker} + ' is already in your portfolio'"
                        class="btn btn-info mb-3 disabled"
@@ -465,7 +465,7 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
                        aria-disabled="true">
                         Already in portfolio
                     </a>
-                    <a th:unless="${portfolio.contains(stock)}"
+                    <a th:unless="${user.getPortfolio().contains(stock)}"
                        th:href="@{${'/stocks/add-to-portfolio/'+stock.id}}"
                        th:alt-title="'Add ' + ${stock.ticker} + ' to portfolio'"
                        class="btn btn-success mb-3">

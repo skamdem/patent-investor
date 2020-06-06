@@ -26,7 +26,7 @@ import static org.launchcode.patentinvestor.controllers.HomeController.NOT_LOGGE
  */
 @Controller
 @RequestMapping("tags")
-@SessionAttributes("portfolio")
+//@SessionAttributes("portfolio")
 public class TagController {
 
     //General messages
@@ -50,13 +50,10 @@ public class TagController {
     @Autowired
     private PaginatedListingService<Tag> paginatedListingService;
 
-    @ModelAttribute("portfolio")
-    public Portfolio portfolio(HttpServletRequest request) {
+    @ModelAttribute("user")
+    public User user(HttpServletRequest request) {
         User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser != null) {//user is logged in
-            return loggedInUser.getPortfolio();
-        }
-        return null;
+        return loggedInUser;
     }
 
     @ModelAttribute("isLoggedIn")
@@ -73,8 +70,6 @@ public class TagController {
      * @param page
      * @param size
      * @param sortIcon
-     * @param request
-     * @param redirectAttributes
      * @return
      */
     @RequestMapping(method = RequestMethod.GET)
@@ -82,19 +77,14 @@ public class TagController {
             Model model,
             @RequestParam("page") Optional<Integer> page,
             @RequestParam("size") Optional<Integer> size,
-            @RequestParam("sortIcon") Optional<String> sortIcon,
-            HttpServletRequest request,
-            RedirectAttributes redirectAttributes
+            @RequestParam("sortIcon") Optional<String> sortIcon
     ) {
-
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser == null) {//user is NOT logged in
-            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
-                    NOT_LOGGED_IN_MSG);
-            return "redirect:/";
-        } else {//user is logged in
-            model.addAttribute("isLoggedIn", true);
-        }
+//        System.out.println("BEFORE: "+(((User)model.getAttribute("user") == null)?"NOT logged in":"logged in"));
+//        if ((boolean) model.getAttribute("isLoggedIn") == false) {//user is NOT logged in
+//            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
+//                    NOT_LOGGED_IN_MSG);
+//            return "redirect:/";
+//        }
 
         int currentPage = page.orElse(1);
         int pageSize = size.orElse(numberOfItemsPerPage);
@@ -104,7 +94,8 @@ public class TagController {
 
         //List<Tag> listOfAllTags = (List<Tag>) tagRepository.findAll();
         //Filter tags pertaining to this User's portfolio ONLY
-        List<Tag> listOfTagsFound = loggedInUser.getPortfolio().getTags();
+        //List<Tag> listOfTagsFound = loggedInUser.getPortfolio().getTags();
+        List<Tag> listOfTagsFound = ((User) model.getAttribute("user")).getPortfolio().getTags();
 
         if (listOfTagsFound.size() == 0) {
             model.addAttribute(INFO_MESSAGE_KEY, "info|No investment fields were found! Click the 'create new field' button below to create one");
@@ -123,7 +114,7 @@ public class TagController {
         Page<Tag> tagPage = paginatedListingService.findPaginated(PageRequest.of(currentPage - 1, pageSize));
 
         model.addAttribute("title", "All investment fields of " +
-                loggedInUser.getUsername());
+                ((User) model.getAttribute("user")).getUsername());
 
         //named stockPage because using the same fragment as that of stocks
         model.addAttribute("stockPage", tagPage);
@@ -149,21 +140,11 @@ public class TagController {
      * A Logged in User adds a tag to his own portfolio
      *
      * @param model
-     * @param request
      * @return
      */
     @GetMapping("create")
     public String renderCreateTagForm(
-            Model model,
-            HttpServletRequest request,
-            RedirectAttributes redirectAttributes) {
-
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser == null) {//user is NOT logged in
-            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
-                    NOT_LOGGED_IN_MSG);
-            return "redirect:/";
-        }
+            Model model) {
 
         model.addAttribute("title", "Create investment field");
         model.addAttribute(INFO_MESSAGE_KEY, "info|'Investments fields' help categorize" +
@@ -173,7 +154,7 @@ public class TagController {
         //Filter tags pertaining to this User's portfolio ONLY
         //User loggedInUser = authenticationController.getUserFromSession(request.getSession());
         model.addAttribute("isLoggedIn", true);
-        Portfolio portfolio = loggedInUser.getPortfolio();
+        Portfolio portfolio = ((User) model.getAttribute("user")).getPortfolio();
         //System.out.println("A: "+portfolio);
         model.addAttribute(new Tag(portfolio)); //model.addAttribute(new Tag());
         return "tags/create";
@@ -193,15 +174,7 @@ public class TagController {
             @Valid @ModelAttribute Tag tag,
             Errors errors,
             Model model,
-            HttpServletRequest request,
             RedirectAttributes redirectAttributes) {
-
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser == null) {//user is NOT logged in
-            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
-                    NOT_LOGGED_IN_MSG);
-            return "redirect:/";
-        }
 
         if (errors.hasFieldErrors("name") || errors.hasFieldErrors("description")) {
             model.addAttribute("title", "Create investment field");
@@ -211,7 +184,10 @@ public class TagController {
             return "tags/create";
         }
 
-        Tag newTag = new Tag(tag.getName(), tag.getDescription(), loggedInUser.getPortfolio());
+        Tag newTag = new Tag(
+                tag.getName(),
+                tag.getDescription(),
+                ((User) model.getAttribute("user")).getPortfolio());
         //System.out.println("D: "+ newTag.getPortfolio());
         tagRepository.save(newTag);
         //tagRepository.save(tag);
@@ -224,27 +200,16 @@ public class TagController {
      * A User should ONLY delete his own tags
      *
      * @param model
-     * @param request
      * @return
      */
     @GetMapping("delete")
     public String displayDeleteTagForm(
-            Model model,
-            HttpServletRequest request,
-            RedirectAttributes redirectAttributes) {
-
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser == null) {//user is NOT logged in
-            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
-                    NOT_LOGGED_IN_MSG);
-            return "redirect:/";
-        }
-
+            Model model) {
         model.addAttribute("title", "Delete investment field");
         List<Tag> deletableTags = new ArrayList<>();
 
         //Filter tags pertaining to this User's portfolio ONLY
-        List<Tag> allTags = loggedInUser.getPortfolio().getTags();
+        List<Tag> allTags = ((User) model.getAttribute("user")).getPortfolio().getTags();
         //Iterable<Tag> allTags = tagRepository.findAll();
 
         for (Tag tag : allTags) {
@@ -259,23 +224,17 @@ public class TagController {
     }
 
     /**
+     *
      * @param tagIds
+     * @param model
      * @param redirectAttributes
      * @return
      */
     @PostMapping("delete")
     public String processDeleteTagForm(
             @RequestParam(required = false) int[] tagIds,
-            HttpServletRequest request,
+            Model model,
             RedirectAttributes redirectAttributes) {
-
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser == null) {//user is NOT logged in
-            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
-                    NOT_LOGGED_IN_MSG);
-            return "redirect:/";
-        }
-
         if (tagIds != null) {
             for (int id : tagIds) {
                 Tag tag = tagRepository.findById(id).get();
@@ -307,26 +266,16 @@ public class TagController {
     }*/
 
     /**
+     *
      * @param model
      * @param tagId
+     * @param redirectAttributes
      * @return
      */
     @GetMapping("edit/{tagId}")
     public String displayEditForm(
             Model model,
-            @PathVariable int tagId,
-            HttpServletRequest request,
-            RedirectAttributes redirectAttributes) {
-
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser == null) {//user is NOT logged in
-            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
-                    NOT_LOGGED_IN_MSG);
-            return "redirect:/";
-        } else {//user is logged in
-            model.addAttribute("isLoggedIn", true);
-        }
-
+            @PathVariable int tagId) {
         Tag tag = tagRepository.findById(tagId).get();
         String tagName = tag.getDisplayName();
         model.addAttribute("title",
@@ -339,7 +288,7 @@ public class TagController {
                     tag.getStocks().size() + " stock(s) that would be affected");
         }
         //System.out.println("A: "+tag.getId());
-        model.addAttribute("tagId",tag.getId());
+        model.addAttribute("tagId", tag.getId());
         return "tags/edit";
     }
 
@@ -348,6 +297,7 @@ public class TagController {
      * @param tag
      * @param errors
      * @param model
+     * @param tagId
      * @param redirectAttributes
      * @return
      */
@@ -357,22 +307,19 @@ public class TagController {
             Errors errors,
             Model model,
             int tagId,
-//            String name,
-//            String description,
             RedirectAttributes redirectAttributes) {
-
-            if (errors.hasFieldErrors("name") || errors.hasFieldErrors("description")) {
-                //System.out.println("B: "+tagId);//tag.getId());
-                String tagName = tagRepository.findById(tagId).get().getDisplayName();
-                model.addAttribute("title",
-                        "Edit investment field " + tagName);
-                model.addAttribute("tag", tag);
-                model.addAttribute("tagId", tagId);
-                model.addAttribute("isLoggedIn", true);
-                model.addAttribute(tag);
-                model.addAttribute(ACTION_MESSAGE_KEY, "danger|Failed to edit the investment field " + tagName);
-                return "/tags/edit";
-            }
+        if (errors.hasFieldErrors("name") || errors.hasFieldErrors("description")) {
+            //System.out.println("B: "+tagId);//tag.getId());
+            String tagName = tagRepository.findById(tagId).get().getDisplayName();
+            model.addAttribute("title",
+                    "Edit investment field " + tagName);
+            model.addAttribute("tag", tag);
+            model.addAttribute("tagId", tagId);
+            model.addAttribute("isLoggedIn", true);
+            model.addAttribute(tag);
+            model.addAttribute(ACTION_MESSAGE_KEY, "danger|Failed to edit the investment field " + tagName);
+            return "/tags/edit";
+        }
 
         Optional<Tag> result = tagRepository.findById(tagId);
         Tag editedTag = result.get();

@@ -88,7 +88,7 @@
         </tr>
     </th:block>
 
-    <tr th:if="${isLoggedIn != null}">
+    <tr th:if="${isLoggedIn}">
         <th>List of tags :</th>
         <td>
             <span th:unless="${relevantTags.size()} > 0"
@@ -107,13 +107,13 @@
             </th:block>
         </td>
     </tr>
-    <tr th:if="${(isLoggedIn != null) and (inPortfolio != null)}">
+    <tr th:if="${(isLoggedIn) and (inPortfolio != null)}">
         <th>Number of shares in portfolio :</th>
         <td th:text="${numberOfShares}"></td>
     </tr>
 </table>
 
-<th:block th:if="${isLoggedIn != null}">
+<th:block th:if="${isLoggedIn}">
 
     <a th:if="${inPortfolio == null}"
        th:href="@{${'/stocks/add-to-portfolio/'+stock.id}}"

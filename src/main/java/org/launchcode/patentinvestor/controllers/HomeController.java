@@ -17,6 +17,9 @@ import java.util.Map;
 @Controller
 public class HomeController {
 
+    //General messages
+    private final String INFO_MESSAGE_KEY = "message";
+
     public static final String BASE_URL = "http://localhost:8080/";
 
     //General messages for the application
@@ -50,6 +53,12 @@ public class HomeController {
 
         model.addAttribute("actions", actionChoices);
         model.addAttribute("title", "Home");
+
+        if(request.getSession().getAttribute(INFO_MESSAGE_KEY) != null){
+            //System.out.println("HEY");
+            model.addAttribute(INFO_MESSAGE_KEY, request.getSession().getAttribute(INFO_MESSAGE_KEY));;
+            request.getSession().removeAttribute(INFO_MESSAGE_KEY);
+        }
 
         return "index";
     }

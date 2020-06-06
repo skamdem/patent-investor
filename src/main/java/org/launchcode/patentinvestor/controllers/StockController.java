@@ -38,7 +38,7 @@ import static org.launchcode.patentinvestor.models.ApiData.*;
  */
 @Controller
 @RequestMapping("stocks")
-@SessionAttributes("portfolio")
+@SessionAttributes("isLoggedIn")
 public class StockController {
 
     //General messages
@@ -116,13 +116,10 @@ public class StockController {
     @Autowired
     AuthenticationController authenticationController;
 
-    @ModelAttribute("portfolio")
-    public Portfolio portfolio(HttpServletRequest request) {
+    @ModelAttribute("user")
+    public User user(HttpServletRequest request) {
         User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser != null) {//user is logged in
-            return loggedInUser.getPortfolio();
-        }
-        return null;
+        return loggedInUser;
     }
 
     @ModelAttribute("isLoggedIn")
@@ -138,17 +135,12 @@ public class StockController {
      * Display initial empty "Stock search form"
      * <p>
      * This method returns at URL /stocks/search
+     * @param model
+     * @return
      */
     @RequestMapping(value = "search", method = RequestMethod.GET)
     public String displaySearchForm(
-            Model model,
-            HttpServletRequest request) {
-
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser != null) {//user is logged in
-            model.addAttribute("isLoggedIn", true);
-        }
-
+            Model model) {
         model.addAttribute("searchDestinationUrl", searchDestinationUrl);
         model.addAttribute("columns", columnChoices);
         model.addAttribute("title", "Search stock");
@@ -175,21 +167,13 @@ public class StockController {
      * @param size
      * @return
      */
-    //@PostMapping(value = "searchResults")
     @RequestMapping(value = "searchResults", method = {RequestMethod.GET, RequestMethod.POST})
     public String displaySearchResults(
             @RequestParam(required = false) String searchTerm,
             @RequestParam(required = false) String searchType,
             Model model,
             @RequestParam("page") Optional<Integer> page,
-            @RequestParam("size") Optional<Integer> size,
-            HttpServletRequest request) {
-
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser != null) {//user is logged in
-            model.addAttribute("isLoggedIn", true);
-            model.addAttribute("portfolio", loggedInUser.getPortfolio());
-        }
+            @RequestParam("size") Optional<Integer> size) {
 
         int currentPage = page.orElse(1);
         int pageSize = size.orElse(numberOfItemsPerPage);
@@ -276,14 +260,7 @@ public class StockController {
             @RequestParam("size") Optional<Integer> size,
             @RequestParam("sortIcon") Optional<String> sortIcon,
             @RequestParam(required = false) String searchTerm,
-            @RequestParam(required = false) String searchType,
-            HttpServletRequest request) {
-
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser != null) {//user is logged in
-            model.addAttribute("isLoggedIn", true);
-            model.addAttribute("portfolio", loggedInUser.getPortfolio());
-        }
+            @RequestParam(required = false) String searchType) {
 
         int currentPage = page.orElse(1);
         int pageSize = size.orElse(numberOfItemsPerPage);
@@ -369,7 +346,6 @@ public class StockController {
      * stockPage, pageNumbers, currentPage, paginationDestinationUrl
      * <p>
      * This method returns at URL /stocks/index
-     *
      * @param tagId
      * @param model
      * @param page
@@ -383,17 +359,7 @@ public class StockController {
             Model model,
             @RequestParam("page") Optional<Integer> page,
             @RequestParam("size") Optional<Integer> size,
-            @RequestParam("sortIcon") Optional<String> sortIcon,
-            HttpServletRequest request) {
-
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser != null) {//user is properly logged in
-            //model.addAttribute("isLoggedIn", true);
-            //System.out.println(model.containsAttribute("isLoggedIn"));
-            System.out.println("BEFORE: " + model.containsAttribute("portfolio"));
-            model.addAttribute("portfolio", loggedInUser.getPortfolio());
-            System.out.println("AFTER: " + model.containsAttribute("portfolio"));
-        }
+            @RequestParam("sortIcon") Optional<String> sortIcon) {
 
         int currentPage = page.orElse(1);
         int pageSize = size.orElse(numberOfItemsPerPage);
@@ -492,13 +458,15 @@ public class StockController {
      * BOTH LOGGED IN AND NOT LOGGED IN
      * Display details of a stock
      * This method returns at URL /stocks/detail
+     *
+     * @param stockId
+     * @param model
+     * @return
      */
     @GetMapping("detail/{stockId}")
     public String displayStockDetails(
             @PathVariable Integer stockId,
-            Model model,
-            HttpServletRequest request) {
-
+            Model model) {
         Optional<Stock> result = stockRepository.findById(stockId);
         if (result.isEmpty()) {
             model.addAttribute("title", "Invalid Stock ID: " + stockId);
@@ -510,11 +478,9 @@ public class StockController {
             model.addAttribute("stock", stock);
             model.addAttribute("exchangePlatforms", stockExchanges);
 
-            User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-            if (loggedInUser != null) {//user is properly logged in
-                model.addAttribute("isLoggedIn", true);
-
-                Portfolio portfolio = loggedInUser.getPortfolio();
+            //System.out.println("BEFORE: " + model.getAttribute("isLoggedIn"));
+            if ((boolean) model.getAttribute("isLoggedIn") == true) {//user is properly logged in
+                Portfolio portfolio = ((User) model.getAttribute("user")).getPortfolio();
 //                Set<Tag> relevantTags = portfolio.getTags().stream()
 //                        .distinct()
 //                        .filter(stock.getTags()::contains)
@@ -555,7 +521,6 @@ public class StockController {
      * @param page
      * @param size
      * @param sortIcon
-     * @param request
      * @return
      */
     @GetMapping("portfolio")
@@ -564,21 +529,15 @@ public class StockController {
             @RequestParam("page") Optional<Integer> page,
             @RequestParam("size") Optional<Integer> size,
             @RequestParam("sortIcon") Optional<String> sortIcon,
-            HttpServletRequest request,
             RedirectAttributes redirectAttributes) {
 
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser == null) {//user is NOT logged in
-            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
-                    NOT_LOGGED_IN_MSG);
-            return "redirect:/";
-        }
+//        System.out.println(model.getAttribute("isLoggedIn"));
+//        if ((boolean) model.getAttribute("isLoggedIn") == false) {//user is NOT logged in
+//            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
+//                    NOT_LOGGED_IN_MSG);
+//            return "redirect:/";
+//        }
 
-        //user is logged in at this point
-        Portfolio portfolio = loggedInUser.getPortfolio();
-        model.addAttribute("isLoggedIn", true);
-        //To collect numberOfShares, totalNumberOfPatents, netWorth, adjustedPatents
-        model.addAttribute("portfolio", portfolio);
         model.addAttribute("portfolioPage", true);
         //model.addAttribute("adjustedPatents", portfolio.getAdjustedPatents());
 
@@ -595,10 +554,14 @@ public class StockController {
         model.addAttribute("paginationDestinationUrl", paginationDestinationUrl);
 
         model.addAttribute("title", "Stocks portfolio of " +
-                loggedInUser.getUsername());
+                ((User) model.getAttribute("user")).getUsername());
 
-        List<StockShare> portfolioStockShareList = portfolio.getStockShares();
-        List<Stock> portfolioList = portfolio.getRelevantStocks();
+        List<StockShare> portfolioStockShareList = ((User) model.getAttribute("user"))
+                .getPortfolio()
+                .getStockShares();
+        List<Stock> portfolioList = ((User) model.getAttribute("user"))
+                .getPortfolio()
+                .getRelevantStocks();
 
         switch (sortCriteriaInPortfolio) {
             case "tickerUp":
@@ -673,25 +636,21 @@ public class StockController {
 
     /**
      * ONLY LOGGED IN
-     *
      * @param model
      * @param stockId
+     * @param redirectAttributes
      * @return
      */
     @GetMapping("adjust-shares-portfolio/{stockId}")
     public String displayAdjustSharesInPortfolio(
             Model model,
             @PathVariable int stockId,
-            HttpServletRequest request,
             RedirectAttributes redirectAttributes) {
 
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser == null) {//user is NOT logged in
+        if ((boolean) model.getAttribute("isLoggedIn") == false) {//user is NOT logged in
             redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
                     NOT_LOGGED_IN_MSG);
             return "redirect:/";
-        } else {//user is logged in
-            model.addAttribute("isLoggedIn", true);
         }
 
         Stock stock = stockRepository.findById(stockId).get();
@@ -703,7 +662,9 @@ public class StockController {
                 " number of shares must be a number between 0 and 1000");
         model.addAttribute("stockId", stockId);
 
-        List<StockShare> portfolioStockShareList = loggedInUser.getPortfolio().getStockShares();
+        List<StockShare> portfolioStockShareList = ((User) model.getAttribute("user"))
+                .getPortfolio()
+                .getStockShares();
         for (StockShare stockShare : portfolioStockShareList) {
             if (stockShare.getStock() == stock) {
                 model.addAttribute("stockShare", stockShare);
@@ -720,6 +681,7 @@ public class StockController {
      * @param stockShareId
      * @param numberOfShares
      * @param redirectAttributes
+     * @param model
      * @return
      */
     @PostMapping("adjust-shares-portfolio")
@@ -727,10 +689,9 @@ public class StockController {
             int stockShareId,
             int numberOfShares,
             RedirectAttributes redirectAttributes,
-            HttpServletRequest request) {
+            Model model) {
 
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser == null) {//user is NOT logged in
+        if ((boolean) model.getAttribute("isLoggedIn") == false) {//user is NOT logged in
             redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
                     NOT_LOGGED_IN_MSG);
             return "redirect:/";
@@ -749,18 +710,20 @@ public class StockController {
      * Display details of a stock AFTER adding
      * it to the portfolio
      * This method returns at URL /stocks/detail
+     * <p>
      *
-     * Precondition: User is logged in!
+     * @param stockId
+     * @param model
+     * @param redirectAttributes
+     * @return
      */
     @GetMapping("add-to-portfolio/{stockId}")
     public String displayStockDetailsInPortfolio(
             @PathVariable Integer stockId,
             Model model,
-            RedirectAttributes redirectAttributes,
-            HttpServletRequest request) {
+            RedirectAttributes redirectAttributes) {
 
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser == null) {//user is NOT logged in
+        if ((boolean) model.getAttribute("isLoggedIn") == false) {//user is NOT logged in
             redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
                     NOT_LOGGED_IN_MSG);
             return "redirect:/";
@@ -773,7 +736,7 @@ public class StockController {
             model.addAttribute("title", "Invalid Stock ID: " + stockId);
         } else { // there are stocks for that stockId!
             Stock stock = result.get();
-            Portfolio portfolio = loggedInUser.getPortfolio();
+            Portfolio portfolio = ((User) model.getAttribute("user")).getPortfolio();
 
 //            Set<Tag> relevantTags = portfolio.getTags().stream()
 //                    .distinct()
@@ -806,7 +769,7 @@ public class StockController {
     }
 
     /**
-     * This method retrieves current data from remote IEX API
+     * Helper method that retrieves current data from remote IEX API
      *
      * @param ticker
      * @param model
@@ -858,16 +821,17 @@ public class StockController {
      *
      * @param stockId
      * @param redirectAttributes
+     * @param model
      * @return
      */
     @GetMapping("remove-from-portfolio/{stockId}")
     public String displayStockDetailsRemovedFromPortfolio(
             @PathVariable Integer stockId,
             RedirectAttributes redirectAttributes,
-            HttpServletRequest request) {
+            Model model) {
 
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser == null) {//user is NOT logged in
+        //User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+        if ((boolean) model.getAttribute("isLoggedIn") == false) {//user is NOT logged in
             redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
                     NOT_LOGGED_IN_MSG);
             return "redirect:/";
@@ -879,7 +843,7 @@ public class StockController {
             redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|Invalid Stock ID: " + stockId);
         } else { // there are stocks for that stockId!
             Stock stock = result.get();
-            Portfolio portfolio = loggedInUser.getPortfolio();
+            Portfolio portfolio = ((User) model.getAttribute("user")).getPortfolio();
             if (!portfolio.contains(stock)) {//the stock is not in the portfolio
                 redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|The stock '" + stock.getTicker() + "' is not currently in your " +
                         PORTFOLIO_LINK_IN_MSG);
@@ -912,17 +876,16 @@ public class StockController {
      *
      * @param stockId
      * @param model
+     * @param redirectAttributes
      * @return
      */
     @GetMapping("add-tag/{stockId}")
     public String displayAddTagForm(
             @PathVariable Integer stockId,
             Model model,
-            RedirectAttributes redirectAttributes,
-            HttpServletRequest request) {
+            RedirectAttributes redirectAttributes) {
 
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser == null) {//user is NOT logged in
+        if ((boolean) model.getAttribute("isLoggedIn") == false) {//user is NOT logged in
             redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
                     NOT_LOGGED_IN_MSG);
             return "redirect:/";
@@ -935,7 +898,9 @@ public class StockController {
         model.addAttribute("title", "Add Tag to: " + stock.getTicker());
 
         //model.addAttribute("tags", tagRepository.findAll());
-        List<Tag> allTags = loggedInUser.getPortfolio().getTags();
+        List<Tag> allTags = ((User) model.getAttribute("user"))
+                .getPortfolio()
+                .getTags();
         List<Tag> tags = new ArrayList<>();
         int alreadyTagged = 0;
         for (Tag tag : allTags) {
@@ -973,6 +938,7 @@ public class StockController {
      * @param stockTag
      * @param errors
      * @param redirectAttributes
+     * @param model
      * @return
      */
     @PostMapping("add-tag")
@@ -980,10 +946,9 @@ public class StockController {
             @ModelAttribute @Valid StockTagDTO stockTag,
             Errors errors,
             RedirectAttributes redirectAttributes,
-            HttpServletRequest request) {
+            Model model) {
 
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser == null) {//user is NOT logged in
+        if ((boolean) model.getAttribute("isLoggedIn") == false) {//user is NOT logged in
             redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
                     NOT_LOGGED_IN_MSG);
             return "redirect:/";
@@ -1013,17 +978,16 @@ public class StockController {
      *
      * @param stockId
      * @param model
+     * @param redirectAttributes
      * @return
      */
     @GetMapping("remove-tag/{stockId}")
     public String displayRemoveTagForm(
             @PathVariable Integer stockId,
             Model model,
-            RedirectAttributes redirectAttributes,
-            HttpServletRequest request) {
+            RedirectAttributes redirectAttributes) {
 
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser == null) {//user is NOT logged in
+        if ((boolean) model.getAttribute("isLoggedIn") == false) {//user is NOT logged in
             redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
                     NOT_LOGGED_IN_MSG);
             return "redirect:/";
@@ -1044,7 +1008,10 @@ public class StockController {
                 .filter(stockTags::contains)
                 .collect(Collectors.toSet());*/
         //intersection of the lists of portfolio tags and all stock tags
-        List<Tag> inPortfolioStockTags = stock.getInPortfolioTags(loggedInUser.getPortfolio().getTags());
+        List<Tag> inPortfolioStockTags = stock.getInPortfolioTags(
+                ((User) model.getAttribute("user"))
+                        .getPortfolio()
+                        .getTags());
         model.addAttribute("inPortfolioStockTags", inPortfolioStockTags);//tagRepository.findAll());
         model.addAttribute("stockId", stockId);
 //        StockTagDTO stockTagDTO = new StockTagDTO();
@@ -1058,7 +1025,10 @@ public class StockController {
      * remove tag from a stock
      * responds to /stocks/remove-tag?stockId=13
      *
+     * @param stockId
+     * @param tagIds
      * @param redirectAttributes
+     * @param model
      * @return
      */
     @PostMapping("remove-tag")
@@ -1066,10 +1036,9 @@ public class StockController {
             int stockId,
             @RequestParam(required = false) int[] tagIds,
             RedirectAttributes redirectAttributes,
-            HttpServletRequest request) {
+            Model model) {
 
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser == null) {//user is NOT logged in
+        if ((boolean) model.getAttribute("isLoggedIn") == false) {//user is NOT logged in
             redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
                     NOT_LOGGED_IN_MSG);
             return "redirect:/";
@@ -1095,6 +1064,7 @@ public class StockController {
     }
 
     /**
+     * Helper method to
      * CALL USPTO API to refresh data
      */
     void loadUsptoAPI() {
@@ -1181,6 +1151,7 @@ public class StockController {
     }
 
     /**
+     * Helper method to
      * CALL IEX API to refresh data
      */
     void loadIexApi() {
@@ -1327,15 +1298,15 @@ public class StockController {
      * ONLY LOGGED IN
      *
      * @param redirectAttributes
+     * @param model
      * @return
      */
     @GetMapping("callAPIs")
     public String displayStocksAfterCallingAPIs(
             RedirectAttributes redirectAttributes,
-            HttpServletRequest request) {
+            Model model) {
 
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser == null) {//user is NOT logged in
+        if ((boolean) model.getAttribute("isLoggedIn") == false) {//user is NOT logged in
             redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
                     NOT_LOGGED_IN_MSG);
             return "redirect:/";
@@ -1356,13 +1327,7 @@ public class StockController {
     @GetMapping("IP30")
     public String displayIP30(
             Model model,
-            RedirectAttributes redirectAttributes,
-            HttpServletRequest request) {
-
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser != null) {//user is logged in
-            model.addAttribute("isLoggedIn", true);
-        }
+            RedirectAttributes redirectAttributes) {
 
         List<Stock> listOfStocks = (List<Stock>) stockRepository.findAll();
         int size = Math.min(30, listOfStocks.size());
@@ -1382,6 +1347,7 @@ public class StockController {
     }
 
     /**
+     * Helper method to
      * Compute IP30's number of patents and
      * weighted price dynamically
      * Precondition : There are more than 30 stocks in the databse
