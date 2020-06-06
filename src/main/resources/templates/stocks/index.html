@@ -27,7 +27,7 @@
         <div class="col-sm-12 col-md-4 merge-with-background">
             <div class="card mb-4 merge-with-background">
                 <div class="">
-                    <a th:if="${isLoggedIn != null}"
+                    <a th:if="${isLoggedIn}"
                        th:href="@{${'/stocks/callAPIs'}}"
                        th:alt-title="'Query API to refresh stocks data'"
                        class="btn btn-success mb-3"
@@ -35,7 +35,7 @@
                     >
                         Refresh stock data
                     </a>
-                    <a th:if="${isLoggedIn == null}"
+                    <a th:if="${isLoggedIn == null || isLoggedIn == false}"
                        href="#"
                        th:alt-title="'Query API to refresh stocks data'"
                        class="btn btn-info mb-3"

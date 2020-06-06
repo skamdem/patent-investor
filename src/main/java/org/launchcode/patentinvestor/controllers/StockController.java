@@ -38,6 +38,7 @@ import static org.launchcode.patentinvestor.models.ApiData.*;
  */
 @Controller
 @RequestMapping("stocks")
+@SessionAttributes("portfolio")
 public class StockController {
 
     //General messages
@@ -114,6 +115,24 @@ public class StockController {
 
     @Autowired
     AuthenticationController authenticationController;
+
+    @ModelAttribute("portfolio")
+    public Portfolio portfolio(HttpServletRequest request) {
+        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+        if (loggedInUser != null) {//user is logged in
+            return loggedInUser.getPortfolio();
+        }
+        return null;
+    }
+
+    @ModelAttribute("isLoggedIn")
+    public boolean isLoggedIn(HttpServletRequest request) {
+        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+        if (loggedInUser != null) {//user is logged in
+            return true;
+        }
+        return false;
+    }
 
     /**
      * Display initial empty "Stock search form"
@@ -369,8 +388,11 @@ public class StockController {
 
         User loggedInUser = authenticationController.getUserFromSession(request.getSession());
         if (loggedInUser != null) {//user is properly logged in
-            model.addAttribute("isLoggedIn", true);
+            //model.addAttribute("isLoggedIn", true);
+            //System.out.println(model.containsAttribute("isLoggedIn"));
+            System.out.println("BEFORE: " + model.containsAttribute("portfolio"));
             model.addAttribute("portfolio", loggedInUser.getPortfolio());
+            System.out.println("AFTER: " + model.containsAttribute("portfolio"));
         }
 
         int currentPage = page.orElse(1);

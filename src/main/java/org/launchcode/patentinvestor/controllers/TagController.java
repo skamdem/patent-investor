@@ -26,6 +26,7 @@ import static org.launchcode.patentinvestor.controllers.HomeController.NOT_LOGGE
  */
 @Controller
 @RequestMapping("tags")
+@SessionAttributes("portfolio")
 public class TagController {
 
     //General messages
@@ -48,6 +49,24 @@ public class TagController {
 
     @Autowired
     private PaginatedListingService<Tag> paginatedListingService;
+
+    @ModelAttribute("portfolio")
+    public Portfolio portfolio(HttpServletRequest request) {
+        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+        if (loggedInUser != null) {//user is logged in
+            return loggedInUser.getPortfolio();
+        }
+        return null;
+    }
+
+    @ModelAttribute("isLoggedIn")
+    public boolean isLoggedIn(HttpServletRequest request) {
+        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+        if (loggedInUser != null) {//user is logged in
+            return true;
+        }
+        return false;
+    }
 
     /**
      * @param model

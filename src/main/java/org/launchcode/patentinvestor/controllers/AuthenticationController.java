@@ -123,19 +123,6 @@ public class AuthenticationController {
         tagRepository.save(t3);
         tagRepository.save(t4);
         tagRepository.save(t5);
-//        newUser.getPortfolio().getTags().add(t1);
-//        newUser.getPortfolio().getTags().add(t2);
-//        newUser.getPortfolio().getTags().add(t3);
-//        newUser.getPortfolio().getTags().add(t4);
-//        newUser.getPortfolio().getTags().add(t5);
-
-        //test
-//        Optional<User> savedUser = userRepository.findById(newUser.getId());
-//        System.out.println("HERE");
-//        System.out.println(newUser.getPortfolio().getTags().size());
-//        for (Tag tag : savedUser.get().getPortfolio().getTags()) {
-//            System.out.println(tag.getDisplayName());
-//        }
         redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "success|Welcome, " + newUser.getUsername() + ". You are now logged in.");
         //----END Create default contents of an account here---
 

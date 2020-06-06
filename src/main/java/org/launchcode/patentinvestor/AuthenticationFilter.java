@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.launchcode.patentinvestor.controllers.HomeController.NOT_LOGGED_IN_MSG;
+
 /**
  * Created by kamdem
  * For preventing access to certain paths
@@ -29,7 +31,7 @@ public class AuthenticationFilter extends HandlerInterceptorAdapter {
      * List of URLs that shall proceed without authentication
      */
     private static final List<String> whitelist = Arrays.asList(
-            "/login", "/register", "/logout", "/stocks","/",
+            "/login", "/register", "/logout","/", "/stocks",
             "/webjars/bootstrap/4.4.1-1/css/bootstrap.min.css",
             "/img/stock_icon_128_128.png",
             "/img/stock_market_icon_96x96px.png",
@@ -53,23 +55,26 @@ public class AuthenticationFilter extends HandlerInterceptorAdapter {
             HttpServletResponse response,
             Object handler) throws IOException {
 
-        HttpSession session = request.getSession();
-
         // Don't require sign-in for whitelisted pages
         if (isWhitelisted(request.getRequestURI())) {
-
-
-
-
             // returning true indicates that the request may proceed
             return true;
         }
-        //HttpSession session = request.getSession();
+
+        HttpSession session = request.getSession();
         User user = authenticationController.getUserFromSession(session);
         // The user is logged in
         if (user != null) {
             return true;
         }
+
+//        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+//        if (loggedInUser == null) {//user is NOT logged in
+//            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
+//                    NOT_LOGGED_IN_MSG);
+//            return "redirect:/";
+//        }
+
         // The user is NOT logged in
         response.sendRedirect("/login");
         return false;

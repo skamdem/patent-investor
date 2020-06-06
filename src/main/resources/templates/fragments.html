@@ -83,7 +83,7 @@
                 sec:authorize="isAnonymous()"
                 sec:authorize="isAuthenticated()"
                 -->
-                <li th:if="${isLoggedIn != null}"
+                <li th:if="${isLoggedIn}"
                     class="nav-item">
                     <form th:action="@{/logout}"
                           method="post"
@@ -95,7 +95,7 @@
                         <i class="fas fa-sign-out-alt"></i>
                         Log Out</a>
                 </li>
-                <li th:if="${isLoggedIn == null}"
+                <li th:if="${isLoggedIn==null || !isLoggedIn}"
                     class="nav-item">
                     <a class="nav-link"
                        th:href="@{/login}">
@@ -104,7 +104,7 @@
                 </li>
 
                 <!--li class="nav-item" th:if="${#authorization.expression('!isAuthenticated()')}"-->
-                <li th:if="${isLoggedIn == null}"
+                <li th:if="${isLoggedIn==null || !isLoggedIn}"
                     class="nav-item">
                     <a class="nav-link"
                        th:href="@{/register}">
@@ -453,7 +453,8 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
 
         <td>
             <!--Start LOGGED IN-->
-            <div th:if="${isLoggedIn != null}">
+            <div th:if="${isLoggedIn}">
+            <!--div th:if="${isLoggedIn != null}"-->
                 <!-- Display this if OUTSIDE portfolio page -->
                 <th:block th:if="${portfolioPage == null}">
                     <a th:if="${portfolio.contains(stock)}"
@@ -484,7 +485,7 @@ th:href="@{${iconsDestinationUrl} + ${category.idCategory}}"-->
             <!--End LOGGED IN-->
 
             <!--Start NOT LOGGED IN-->
-            <div th:if="${isLoggedIn == null}">
+            <div th:if="${!isLoggedIn}">
                 <a href="#"
                    th:alt-title="'Add ' + ${stock.ticker} + ' to portfolio'"
                    class="btn btn-info mb-3"
