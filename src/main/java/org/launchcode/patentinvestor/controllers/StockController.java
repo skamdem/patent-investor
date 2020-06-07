@@ -38,7 +38,6 @@ import static org.launchcode.patentinvestor.models.ApiData.*;
  */
 @Controller
 @RequestMapping("stocks")
-@SessionAttributes("isLoggedIn")
 public class StockController {
 
     //General messages
@@ -93,10 +92,10 @@ public class StockController {
         stockExchanges.put("OTC", "Over-the-counter");
     }
 
-    @ModelAttribute(name = "columns")
-    public static HashMap<String, String> getColumnChoices() {
-        return columnChoices;
-    }
+//    @ModelAttribute(name = "columns")
+//    public static HashMap<String, String> getColumnChoices() {
+//        return columnChoices;
+//    }
 
     @Autowired
     private StockRepository stockRepository;
@@ -116,21 +115,6 @@ public class StockController {
     @Autowired
     AuthenticationController authenticationController;
 
-    @ModelAttribute("user")
-    public User user(HttpServletRequest request) {
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        return loggedInUser;
-    }
-
-    @ModelAttribute("isLoggedIn")
-    public boolean isLoggedIn(HttpServletRequest request) {
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser != null) {//user is logged in
-            return true;
-        }
-        return false;
-    }
-
     /**
      * Display initial empty "Stock search form"
      * <p>
@@ -138,7 +122,9 @@ public class StockController {
      * @param model
      * @return
      */
-    @RequestMapping(value = "search", method = RequestMethod.GET)
+    @RequestMapping(
+            value = "search",
+            method = RequestMethod.GET)
     public String displaySearchForm(
             Model model) {
         model.addAttribute("searchDestinationUrl", searchDestinationUrl);
@@ -253,7 +239,7 @@ public class StockController {
      * @param searchType
      * @return
      */
-    @GetMapping(value = "reorderedResults")
+    @RequestMapping(value = "reorderedResults", method = RequestMethod.GET)
     public String displayReorderedSearchResults(
             Model model,
             @RequestParam("page") Optional<Integer> page,
@@ -361,6 +347,8 @@ public class StockController {
             @RequestParam("size") Optional<Integer> size,
             @RequestParam("sortIcon") Optional<String> sortIcon) {
 
+        //System.out.println("Logged In stock controller: "+((boolean) model.getAttribute("isLoggedIn")));
+
         int currentPage = page.orElse(1);
         int pageSize = size.orElse(numberOfItemsPerPage);
 
@@ -463,7 +451,7 @@ public class StockController {
      * @param model
      * @return
      */
-    @GetMapping("detail/{stockId}")
+    @RequestMapping(value = "detail/{stockId}", method = RequestMethod.GET)
     public String displayStockDetails(
             @PathVariable Integer stockId,
             Model model) {
@@ -523,23 +511,14 @@ public class StockController {
      * @param sortIcon
      * @return
      */
-    @GetMapping("portfolio")
+    @RequestMapping(value = "portfolio", method = RequestMethod.GET)
     public String displayPortfolioOfStocks(
             Model model,
             @RequestParam("page") Optional<Integer> page,
             @RequestParam("size") Optional<Integer> size,
-            @RequestParam("sortIcon") Optional<String> sortIcon,
-            RedirectAttributes redirectAttributes) {
-
-//        System.out.println(model.getAttribute("isLoggedIn"));
-//        if ((boolean) model.getAttribute("isLoggedIn") == false) {//user is NOT logged in
-//            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
-//                    NOT_LOGGED_IN_MSG);
-//            return "redirect:/";
-//        }
+            @RequestParam("sortIcon") Optional<String> sortIcon) {
 
         model.addAttribute("portfolioPage", true);
-        //model.addAttribute("adjustedPatents", portfolio.getAdjustedPatents());
 
         int currentPage = page.orElse(1);
         int pageSize = size.orElse(numberOfItemsPerPage);
@@ -638,21 +617,12 @@ public class StockController {
      * ONLY LOGGED IN
      * @param model
      * @param stockId
-     * @param redirectAttributes
      * @return
      */
-    @GetMapping("adjust-shares-portfolio/{stockId}")
+    @RequestMapping(value = "adjust-shares-portfolio/{stockId}", method = RequestMethod.GET)
     public String displayAdjustSharesInPortfolio(
             Model model,
-            @PathVariable int stockId,
-            RedirectAttributes redirectAttributes) {
-
-        if ((boolean) model.getAttribute("isLoggedIn") == false) {//user is NOT logged in
-            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
-                    NOT_LOGGED_IN_MSG);
-            return "redirect:/";
-        }
-
+            @PathVariable int stockId) {
         Stock stock = stockRepository.findById(stockId).get();
         String ticker = stock.getTicker();
         model.addAttribute("title",
@@ -671,7 +641,6 @@ public class StockController {
                 break;
             }
         }
-
         return "stocks/adjust-shares";
     }
 
@@ -681,22 +650,13 @@ public class StockController {
      * @param stockShareId
      * @param numberOfShares
      * @param redirectAttributes
-     * @param model
      * @return
      */
-    @PostMapping("adjust-shares-portfolio")
+    @RequestMapping(value = "adjust-shares-portfolio", method = RequestMethod.POST)
     public String processAdjustSharesInPortfolio(
             int stockShareId,
             int numberOfShares,
-            RedirectAttributes redirectAttributes,
-            Model model) {
-
-        if ((boolean) model.getAttribute("isLoggedIn") == false) {//user is NOT logged in
-            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
-                    NOT_LOGGED_IN_MSG);
-            return "redirect:/";
-        }
-
+            RedirectAttributes redirectAttributes) {
         StockShare stockShare = stockShareRepository.findById(stockShareId).get();
         stockShare.setNumberOfShares(numberOfShares);
         stockShareRepository.save(stockShare);
@@ -717,19 +677,11 @@ public class StockController {
      * @param redirectAttributes
      * @return
      */
-    @GetMapping("add-to-portfolio/{stockId}")
+    @RequestMapping(value = "add-to-portfolio/{stockId}", method = RequestMethod.GET)
     public String displayStockDetailsInPortfolio(
             @PathVariable Integer stockId,
             Model model,
             RedirectAttributes redirectAttributes) {
-
-        if ((boolean) model.getAttribute("isLoggedIn") == false) {//user is NOT logged in
-            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
-                    NOT_LOGGED_IN_MSG);
-            return "redirect:/";
-        }
-        //user is logged in at this point
-        model.addAttribute("isLoggedIn", true);
 
         Optional<Stock> result = stockRepository.findById(stockId);
         if (result.isEmpty()) {
@@ -824,19 +776,11 @@ public class StockController {
      * @param model
      * @return
      */
-    @GetMapping("remove-from-portfolio/{stockId}")
+    @RequestMapping(value = "remove-from-portfolio/{stockId}", method = RequestMethod.GET)
     public String displayStockDetailsRemovedFromPortfolio(
             @PathVariable Integer stockId,
             RedirectAttributes redirectAttributes,
             Model model) {
-
-        //User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if ((boolean) model.getAttribute("isLoggedIn") == false) {//user is NOT logged in
-            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
-                    NOT_LOGGED_IN_MSG);
-            return "redirect:/";
-        }
-
         Optional<Stock> result = stockRepository.findById(stockId);
         if (result.isEmpty()) {
             //model.addAttribute("title", "Invalid Stock ID: " + stockId);
@@ -879,19 +823,11 @@ public class StockController {
      * @param redirectAttributes
      * @return
      */
-    @GetMapping("add-tag/{stockId}")
+    @RequestMapping(value = "add-tag/{stockId}", method = RequestMethod.GET)
     public String displayAddTagForm(
             @PathVariable Integer stockId,
             Model model,
             RedirectAttributes redirectAttributes) {
-
-        if ((boolean) model.getAttribute("isLoggedIn") == false) {//user is NOT logged in
-            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
-                    NOT_LOGGED_IN_MSG);
-            return "redirect:/";
-        } else {//user is logged in
-            model.addAttribute("isLoggedIn", true);
-        }
 
         Optional<Stock> result = stockRepository.findById(stockId);
         Stock stock = result.get();
@@ -938,21 +874,13 @@ public class StockController {
      * @param stockTag
      * @param errors
      * @param redirectAttributes
-     * @param model
      * @return
      */
-    @PostMapping("add-tag")
+    @RequestMapping(value = "add-tag", method = RequestMethod.POST)
     public String processAddTagForm(
             @ModelAttribute @Valid StockTagDTO stockTag,
             Errors errors,
-            RedirectAttributes redirectAttributes,
-            Model model) {
-
-        if ((boolean) model.getAttribute("isLoggedIn") == false) {//user is NOT logged in
-            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
-                    NOT_LOGGED_IN_MSG);
-            return "redirect:/";
-        }
+            RedirectAttributes redirectAttributes) {
 
         if (!errors.hasErrors()) {
             Stock stock = stockTag.getStock();
@@ -978,22 +906,12 @@ public class StockController {
      *
      * @param stockId
      * @param model
-     * @param redirectAttributes
      * @return
      */
-    @GetMapping("remove-tag/{stockId}")
+    @RequestMapping(value = "remove-tag/{stockId}", method = RequestMethod.GET)
     public String displayRemoveTagForm(
             @PathVariable Integer stockId,
-            Model model,
-            RedirectAttributes redirectAttributes) {
-
-        if ((boolean) model.getAttribute("isLoggedIn") == false) {//user is NOT logged in
-            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
-                    NOT_LOGGED_IN_MSG);
-            return "redirect:/";
-        } else {//user is logged in
-            model.addAttribute("isLoggedIn", true);
-        }
+            Model model) {
 
         Optional<Stock> result = stockRepository.findById(stockId);
         Stock stock = result.get();
@@ -1028,21 +946,13 @@ public class StockController {
      * @param stockId
      * @param tagIds
      * @param redirectAttributes
-     * @param model
      * @return
      */
-    @PostMapping("remove-tag")
+    @RequestMapping(value = "remove-tag", method = RequestMethod.POST)
     public String processRemoveTagForm(
             int stockId,
             @RequestParam(required = false) int[] tagIds,
-            RedirectAttributes redirectAttributes,
-            Model model) {
-
-        if ((boolean) model.getAttribute("isLoggedIn") == false) {//user is NOT logged in
-            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
-                    NOT_LOGGED_IN_MSG);
-            return "redirect:/";
-        }
+            RedirectAttributes redirectAttributes) {
 
         Optional<Stock> result = stockRepository.findById(stockId);
         Stock stock = result.get();
@@ -1142,7 +1052,10 @@ public class StockController {
      * @return a JSON {@link CurrentPercentageDownloaded} object
      */
     @ResponseBody
-    @GetMapping(path = "progress-bar-value", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(
+            value = "progress-bar-value",
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public CurrentPercentageDownloaded getProgressBarPercentageValue() {
 //        System.out.println("PERCENTAGE1 = " + numberOfUsptoItemsDownloaded);
 //        System.out.println("globalSize = " + globalSize);
@@ -1298,20 +1211,11 @@ public class StockController {
      * ONLY LOGGED IN
      *
      * @param redirectAttributes
-     * @param model
      * @return
      */
-    @GetMapping("callAPIs")
+    @RequestMapping(value = "callAPIs", method = RequestMethod.GET)
     public String displayStocksAfterCallingAPIs(
-            RedirectAttributes redirectAttributes,
-            Model model) {
-
-        if ((boolean) model.getAttribute("isLoggedIn") == false) {//user is NOT logged in
-            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
-                    NOT_LOGGED_IN_MSG);
-            return "redirect:/";
-        }
-
+            RedirectAttributes redirectAttributes) {
         loadUsptoAPI();
         loadIexApi();
         redirectAttributes.addFlashAttribute(ACTION_MESSAGE_KEY, "success|Completed API calls. You now have the latest market stock data.");
@@ -1324,7 +1228,7 @@ public class StockController {
      * @param redirectAttributes
      * @return
      */
-    @GetMapping("IP30")
+    @RequestMapping(value = "IP30", method = RequestMethod.GET)
     public String displayIP30(
             Model model,
             RedirectAttributes redirectAttributes) {

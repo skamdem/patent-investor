@@ -5,7 +5,6 @@ import org.launchcode.patentinvestor.data.UserRepository;
 import org.launchcode.patentinvestor.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -60,7 +59,6 @@ public class AuthenticationFilter extends HandlerInterceptorAdapter {
 //            "/img/showcase.jpg",
 //            "/styles.css"
 //    );
-
     private static boolean isBlackListed(String path) {
         for (String pathRoot : blackList) {
             if (path.startsWith(pathRoot)) {

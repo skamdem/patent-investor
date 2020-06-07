@@ -4,7 +4,10 @@ import org.launchcode.patentinvestor.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.SessionAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.LinkedHashMap;
@@ -15,6 +18,9 @@ import java.util.Map;
  * Main page of the application
  */
 @Controller
+@ControllerAdvice
+@RequestMapping(value = "")
+//@SessionAttributes("isLoggedIn")
 public class HomeController {
 
     //General messages
@@ -35,15 +41,33 @@ public class HomeController {
     @Autowired
     AuthenticationController authenticationController;
 
+    @ModelAttribute("user")
+    public User user(HttpServletRequest request) {
+        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+        return loggedInUser;
+    }
+
+    @ModelAttribute("isLoggedIn")
+    public boolean isLoggedIn(HttpServletRequest request) {
+        //System.out.println("Home controller EXECUTED isLoggedIn @ModelAttribute");
+        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+        if (loggedInUser != null) {//user is logged in
+            return true;
+        }
+        return false;
+    }
+
     @RequestMapping(value = "")
     public String index(
             Model model,
             HttpServletRequest request) {
-
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser != null) {//user is logged in
-            model.addAttribute("isLoggedIn", true);
-        }
+//        System.out.println("Home controller: " + model.getAttribute("isLoggedIn"));
+//        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
+//        if (loggedInUser != null) {//user is logged in
+//            System.out.println("Home 1: " + model.getAttribute("isLoggedIn"));
+//            model.addAttribute("isLoggedIn", true);
+//            System.out.println("Home 2: " + model.getAttribute("isLoggedIn"));
+//        }
 
         Map<String, String> actionChoices = new LinkedHashMap<>();
         actionChoices.put("stocks/search", "Search stock");
@@ -54,6 +78,7 @@ public class HomeController {
         model.addAttribute("actions", actionChoices);
         model.addAttribute("title", "Home");
 
+        //if there is a message in the session, print it out and clear the session
         if(request.getSession().getAttribute(INFO_MESSAGE_KEY) != null){
             //System.out.println("HEY");
             model.addAttribute(INFO_MESSAGE_KEY, request.getSession().getAttribute(INFO_MESSAGE_KEY));;

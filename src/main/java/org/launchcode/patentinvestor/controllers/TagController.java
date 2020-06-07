@@ -25,6 +25,7 @@ import static org.launchcode.patentinvestor.controllers.HomeController.NOT_LOGGE
  * Created by kamdem
  */
 @Controller
+@ControllerAdvice
 @RequestMapping("tags")
 //@SessionAttributes("portfolio")
 public class TagController {
@@ -50,21 +51,6 @@ public class TagController {
     @Autowired
     private PaginatedListingService<Tag> paginatedListingService;
 
-    @ModelAttribute("user")
-    public User user(HttpServletRequest request) {
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        return loggedInUser;
-    }
-
-    @ModelAttribute("isLoggedIn")
-    public boolean isLoggedIn(HttpServletRequest request) {
-        User loggedInUser = authenticationController.getUserFromSession(request.getSession());
-        if (loggedInUser != null) {//user is logged in
-            return true;
-        }
-        return false;
-    }
-
     /**
      * @param model
      * @param page
@@ -79,6 +65,9 @@ public class TagController {
             @RequestParam("size") Optional<Integer> size,
             @RequestParam("sortIcon") Optional<String> sortIcon
     ) {
+
+        //System.out.println("Logged In tag controller: "+((boolean) model.getAttribute("isLoggedIn")));
+
 //        System.out.println("BEFORE: "+(((User)model.getAttribute("user") == null)?"NOT logged in":"logged in"));
 //        if ((boolean) model.getAttribute("isLoggedIn") == false) {//user is NOT logged in
 //            redirectAttributes.addFlashAttribute(INFO_MESSAGE_KEY, "danger|" +
@@ -142,7 +131,7 @@ public class TagController {
      * @param model
      * @return
      */
-    @GetMapping("create")
+    @RequestMapping(value = "create", method = RequestMethod.GET)
     public String renderCreateTagForm(
             Model model) {
 
@@ -169,7 +158,7 @@ public class TagController {
      * @param redirectAttributes
      * @return
      */
-    @PostMapping("create")
+    @RequestMapping(value = "create", method = RequestMethod.POST)
     public String processCreateTagForm(
             @Valid @ModelAttribute Tag tag,
             Errors errors,
@@ -202,7 +191,7 @@ public class TagController {
      * @param model
      * @return
      */
-    @GetMapping("delete")
+    @RequestMapping(value = "delete", method = RequestMethod.GET)
     public String displayDeleteTagForm(
             Model model) {
         model.addAttribute("title", "Delete investment field");
@@ -247,32 +236,12 @@ public class TagController {
         return "redirect:/tags";
     }
 
-    /*@GetMapping("view/{tagId}")
-    public String displayTag(
-            Model model,
-            @PathVariable int tagId) {
-        Tag tag = tagRepository.findById(tagId).get();
-        String tagName = tag.getDisplayName();
-        model.addAttribute("title",
-                "Investment field " + tagName);
-        model.addAttribute("theTag", tag);
-        if (tag.getStocks().size() > 0) {
-            model.addAttribute(INFO_MESSAGE_KEY, "info|" +
-                    tag.getDisplayName() +
-                    " is currently set to " +
-                    tag.getStocks().size() + " stock(s).");
-        }
-        return "tags/view";
-    }*/
-
     /**
-     *
      * @param model
      * @param tagId
-     * @param redirectAttributes
      * @return
      */
-    @GetMapping("edit/{tagId}")
+    @RequestMapping(value = "edit/{tagId}", method = RequestMethod.GET)
     public String displayEditForm(
             Model model,
             @PathVariable int tagId) {
