@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -30,7 +29,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static org.launchcode.patentinvestor.controllers.HomeController.*;
+import static org.launchcode.patentinvestor.controllers.HomeController.NOT_TAG_MSG;
+import static org.launchcode.patentinvestor.controllers.HomeController.PORTFOLIO_LINK_IN_MSG;
 import static org.launchcode.patentinvestor.models.ApiData.*;
 
 /**
@@ -119,6 +119,7 @@ public class StockController {
      * Display initial empty "Stock search form"
      * <p>
      * This method returns at URL /stocks/search
+     *
      * @param model
      * @return
      */
@@ -332,6 +333,7 @@ public class StockController {
      * stockPage, pageNumbers, currentPage, paginationDestinationUrl
      * <p>
      * This method returns at URL /stocks/index
+     *
      * @param tagId
      * @param model
      * @param page
@@ -615,6 +617,7 @@ public class StockController {
 
     /**
      * ONLY LOGGED IN
+     *
      * @param model
      * @param stockId
      * @return
