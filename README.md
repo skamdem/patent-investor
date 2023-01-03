@@ -3,7 +3,7 @@
 
 ![A chart depicting a board at a stock exchange](./images/patented_stock.png)
 
-In the face of constant innovation; help intellectual-property-aware investors make the right decision about which company to invest in, which patents to buy, lease or sell according to current market trends OR which stock to track given the corresponding company’s patent portfolio in promising and emerging technologies.
+In the face of constant innovation, help intellectual-property-aware investors make the right decision about which company to invest in, which patents to buy, lease or sell according to current market trends OR which stock to track given the corresponding company’s patent portfolio in promising and emerging technologies.
 
 Promising future-proof fields for sustainable investments include but are not limited to: biotech, nanotech, cognitive science, robotics, AI, IoT, 5G, Serverless computing, Blockchain, 3D printing, cloud computing, fintech etc.
 
